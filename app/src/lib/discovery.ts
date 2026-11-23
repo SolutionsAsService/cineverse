@@ -75,7 +75,7 @@ export function sixDegrees(cat: Catalog, from: string, to: string, opt: { max?: 
   const stepsOf = (path: string[]): Step[] => path.map((n, i) => {
     if (n[0] === 'f') { const f = cat.film.get(n.slice(2))!; return { kind: 'film', id: f.id, label: f.t, sub: String(f.y) } as Step; }
     const prev = cat.film.get(path[i - 1].slice(2))!, nextF = cat.film.get(path[i + 1].slice(2))!;
-    if (n[0] === 'p') { const id = n.slice(2); const role = (f: Film) => (f.dir.includes(id) ? 'directed' : f.wr.includes(id) ? 'wrote' : f.co.includes(id) ? 'scored' : f.dp.includes(id) ? 'shot' : 'acted in'); return { kind: 'via', id, via: 'person', label: cat.person.get(id)?.n || id, sub: `${role(prev)} “${prev.t}” and ${role(nextF)} “${nextF.t}”` } as Step; }
+    if (n[0] === 'p') { const id = n.slice(2); const role = (f: Film) => (f.dir.includes(id) ? 'directed' : f.wr.includes(id) ? 'wrote' : f.co.includes(id) ? 'scored' : f.dp.includes(id) ? 'shot' : f.cast.find(c => c[0] === id)?.[1] ? 'acted in' : 'is listed in the cast of'); return { kind: 'via', id, via: 'person', label: cat.person.get(id)?.n || id, sub: `${role(prev)} “${prev.t}” and ${role(nextF)} “${nextF.t}”` } as Step; }
     const fr = cat.franchise.get(n.slice(2)); return { kind: 'via', id: n.slice(2), via: fr?.k === 'trilogy' ? 'trilogy' : 'franchise', label: fr?.n || n, sub: 'both films belong to it' } as Step;
   });
   const uniq = new Map<string, Step[]>(); for (const p of paths) { const k = p.join('>'); if (!uniq.has(k)) uniq.set(k, stepsOf(p)); }

@@ -22,7 +22,7 @@ const collectionPick = (e: Event) => { const v = (e.target as HTMLSelectElement)
 <template>
   <article class="grid grid-cols-1 gap-4" :aria-label="f.t">
     <header class="flex gap-4">
-      <img :src="titleCard(f, cat.primaryGenre(f))" :alt="`Generated title card for ${f.t}`" width="100" height="150" class="rounded border border-line shrink-0" />
+      <img :src="titleCard(f, cat.primaryGenre(f))" :alt="`Generated title card for ${f.t}`" width="100" height="150" class="rounded border border-line shrink-0" title="A generated title card, not the film's poster" />
       <div class="min-w-0">
         <p class="eyebrow">{{ f.y }}<template v-if="f.rt"> · {{ f.rt }} min</template><template v-if="f.cn[0]"> · {{ f.cn[0] }}</template></p>
         <h2 class="display text-2xl mt-1">{{ f.t }}</h2>
@@ -38,7 +38,7 @@ const collectionPick = (e: Event) => { const v = (e.target as HTMLSelectElement)
       <label class="btn relative"><span class="sr-only">Save to collection</span><select class="bg-transparent text-sm" aria-label="Save to collection" @change="collectionPick"><option value="">Save to collection…</option><option v-for="c in lib.s.collections" :key="c.id" :value="c.id">{{ c.name }}</option><option value="__new">New collection…</option></select></label>
     </div>
     <div class="flex items-center gap-1" role="group" aria-label="Your rating"><span class="text-sm text-faint mr-1">Your rating</span><button v-for="n in 5" :key="n" class="min-w-11 min-h-11 text-xl" :class="(lib.s.ratings[f.id] || 0) >= n ? 'text-gold' : 'text-faint'" :aria-label="`${n} star${n > 1 ? 's' : ''}`" :aria-pressed="lib.s.ratings[f.id] === n" @click="lib.rate(f.id, lib.s.ratings[f.id] === n ? 0 : n)">★</button></div>
-    <section><p class="text-dim leading-relaxed">{{ f.ex || f.de }}</p><p v-if="wiki" class="text-xs text-faint mt-1">Synopsis: <a :href="wiki" class="underline" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA 4.0). Facts: Wikidata (CC0).</p></section>
+    <section><p class="text-dim leading-relaxed">{{ f.ex || f.de }}</p><p v-if="wiki" class="text-xs text-faint mt-1">Synopsis: <a :href="wiki" class="underline" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA 4.0, shortened). Image: a generated title card, not a poster. Facts: Wikidata (CC0).</p></section>
     <dl class="grid grid-cols-[110px_1fr] gap-x-3 gap-y-2 text-sm">
       <template v-if="f.dir.length"><dt class="text-faint">Director</dt><dd><RouterLink v-for="p in people(f.dir)" :key="p.id" :to="`/person/${p.id}`" class="text-director hover:underline mr-3">{{ p.n }}</RouterLink></dd></template>
       <template v-if="f.wr.length"><dt class="text-faint">Writers</dt><dd><RouterLink v-for="p in people(f.wr).slice(0, 5)" :key="p.id" :to="`/person/${p.id}`" class="hover:text-gold mr-3">{{ p.n }}</RouterLink></dd></template>
@@ -49,7 +49,7 @@ const collectionPick = (e: Event) => { const v = (e.target as HTMLSelectElement)
       <template v-if="f.aw.length"><dt class="text-faint">Awards</dt><dd class="text-dim">{{ f.aw.slice(0, 4).join('; ') }}</dd></template>
       <template v-if="f.ba.length"><dt class="text-faint">Source</dt><dd class="text-dim">{{ f.ba.map(b => `${b.k} ${b.l}`).join('; ') }}</dd></template>
     </dl>
-    <section v-if="cast.length"><h3 class="eyebrow mb-2">Cast <span v-if="cast[0].b === 0" class="normal-case tracking-normal">(billing order not recorded: listed alphabetically, up to 8 names)</span></h3>
+    <section v-if="cast.length"><h3 class="eyebrow mb-2">Cast <span v-if="cast[0].b === 0" class="normal-case tracking-normal">(billing order not recorded: up to 8 of the names Wikidata lists, shown alphabetically)</span></h3>
       <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm"><li v-for="c in cast" :key="c.p.id"><RouterLink :to="`/person/${c.p.id}`" class="hover:text-gold" :class="c.b > 0 && c.b <= 2 ? 'text-text font-semibold' : 'text-dim'">{{ c.p.n }}</RouterLink></li></ul></section>
     <section v-if="franchises.length"><h3 class="eyebrow mb-2">Franchise information</h3><div class="flex flex-wrap gap-2"><RouterLink v-for="fr in franchises" :key="fr.id" :to="`/franchise/${fr.id}`" class="chip text-text"><i :style="{ background: fr.k === 'trilogy' ? 'var(--color-trilogy)' : 'var(--color-franchise)' }" />{{ fr.n }} · {{ fr.films.length }} films</RouterLink></div></section>
     <section v-if="showConnections"><h3 class="eyebrow mb-2">Connections ({{ conns.length }} strongest)</h3>

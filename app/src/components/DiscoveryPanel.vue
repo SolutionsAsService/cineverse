@@ -11,6 +11,8 @@ const props = defineProps<{ filmId: string; compact?: boolean; present?: (id: st
 const emit = defineEmits<{ add: [id: string] }>();
 const cat = useCatalog().cat!, st = useSettings();
 const tab = ref<'similar' | 'hops' | 'surprise' | 'dna'>('similar');
+// the same person in two roles is one reason, not two: keep the first (strongest) relation per shared person or franchise
+const uniqVia = <T extends { via?: { kind: string; id: string } }>(rels: T[]) => { const seen = new Set<string>(); return rels.filter(r => { const k = r.via ? r.via.kind + r.via.id : Math.random().toString(); if (seen.has(k)) return false; seen.add(k); return true; }); };
 const film = computed(() => cat.film.get(props.filmId)!);
 const sim = computed(() => similar(cat, props.filmId, st.weights, props.compact ? 6 : 12));
 const hops = computed(() => multiHop(cat, props.filmId, st.weights, { n: props.compact ? 5 : 10 }));
@@ -32,7 +34,7 @@ const tabs = [['similar', 'Similar'], ['hops', 'Multi-hop'], ['surprise', 'Same 
       <li v-for="s in sim" :key="s.film.id" class="panel p-2 flex gap-3">
         <img :src="titleCard(s.film, cat.primaryGenre(s.film))" alt="" width="44" height="66" class="rounded-sm border border-line self-start" loading="lazy" />
         <div class="min-w-0 flex-1"><RouterLink :to="`/movie/${s.film.id}`" class="font-semibold hover:text-gold link-t">{{ s.film.t }} <span class="text-faint font-normal">{{ s.film.y }}</span></RouterLink>
-          <p v-for="r in s.relations.slice(0, 2)" :key="r.why" class="mt-1"><RelationBadge :rel="r" explain /></p>
+          <p v-for="r in uniqVia(s.relations).slice(0, 2)" :key="r.why" class="mt-1"><RelationBadge :rel="r" explain /></p>
           <button class="btn ghost !min-h-11 mt-1 !px-2 text-gold" @click="emit('add', s.film.id)">{{ present?.(s.film.id) ? 'On the map: show it' : 'Add to map' }}</button></div>
       </li>
       <li v-if="!sim.length" class="text-dim">No connections found for this film in the catalog.</li>
@@ -40,7 +42,7 @@ const tabs = [['similar', 'Similar'], ['hops', 'Multi-hop'], ['surprise', 'Same 
     <ol v-else-if="tab === 'hops'" class="grid grid-cols-1 gap-2">
       <li v-for="c in hops" :key="c.end.id" class="panel p-3 text-sm">
         <p class="font-semibold"><RouterLink :to="`/movie/${c.end.id}`" class="hover:text-gold">{{ c.end.t }}</RouterLink> <span class="text-faint font-normal">{{ c.end.y }}</span></p>
-        <p v-for="h in c.hops" :key="h.to.id" class="text-dim mt-1"><span class="text-text">{{ h.from.t }}</span> → <span class="text-text">{{ h.to.t }}</span>: {{ h.relation.why }}</p>
+        <p v-for="h in c.hops" :key="h.to.id" class="text-dim mt-1"><span class="text-text">{{ h.from.t }}</span> → <span class="text-text">{{ h.to.t }}</span>: <RelationBadge :rel="h.relation" explain /></p>
         <button class="btn ghost !min-h-11 !px-2 text-gold" @click="emit('add', c.end.id)">{{ present?.(c.end.id) ? 'On the map: show it' : 'Add to map' }}</button>
       </li>
       <li v-if="!hops.length" class="text-dim">No two-step factual chains found.</li>

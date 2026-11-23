@@ -67,10 +67,12 @@ for (const [pid, rows] of by(await R('people'), 'p')) { const p = people.get(pid
 const metaRows = by(await R('seriesMeta'), 's'); const seriesTypes = new Map();
 for (const [sid, rows] of metaRows) seriesTypes.set(sid, { name: v(rows.find(r => v(r, 'sl')) || {}, 'sl'), types: uniq(rows.map(r => v(r, 'tl')).filter(Boolean)) });
 const FR_OK = /film series|film franchise|media franchise|franchise|trilogy|film universe|cinematic universe|shared universe|film cycle|anthology|saga|duology|tetralogy/i;
-const FR_BAD = /list of|bbc|greatest|filmography|award|ranking|top \d|best of|collection of films/i;
+const FR_BAD = /list of|bbc|greatest|filmography|award|ranking|top \d|best of|collection of films|animation studios|animation feature|animated feature|feature films?$|studio ghibli feature|sony pictures animation|\billumination\b|\bproductions\b|walt disney/i;   // Wikidata also files studio catalogues under P179; those are not franchises
 const franchises = new Map();
 for (const [fid, rows] of by(await R('series'))) { const f = films.get(fid); if (!f) continue; for (const r of rows) { const sid = id(v(r, 'x')); const meta = seriesTypes.get(sid); const name = meta?.name || v(r, 'xLabel'); if (!meta || !name || isQ(name) || FR_BAD.test(name)) continue;
   if (!meta.types.some(t => FR_OK.test(t))) continue; if (!franchises.has(sid)) franchises.set(sid, { id: sid, n: name, ty: meta.types.filter(t => FR_OK.test(t)), films: [] }); franchises.get(sid).films.push(fid); f.fr.push(sid); } }
+// a series that is a strict subset of a larger one whose name it contains ("Eon James Bond series" inside "James Bond") is a duplicate listing
+for (const a of [...franchises.values()]) for (const b of franchises.values()) if (a !== b && !a.ty.some(t => /trilogy|duology|tetralogy/i.test(t)) && a.films.length < b.films.length && a.n.toLowerCase().includes(b.n.toLowerCase()) && a.films.every(x => b.films.includes(x))) franchises.delete(a.id);
 for (const f of franchises.values()) { f.films = uniq(f.films).sort((a, b) => films.get(a).y - films.get(b).y || films.get(a).t.localeCompare(films.get(b).t));
   const isTri = f.ty.some(t => /trilogy/i.test(t)); f.k = isTri && f.films.length <= 3 ? 'trilogy' : f.ty.some(t => /universe/i.test(t)) ? 'universe' : 'series'; if (isTri && f.films.length === 2) f.partial = true; f.src = 'wikidata'; }
 for (const [fid, fo] of films) fo.fr = uniq(fo.fr).filter(s => (franchises.get(s)?.films.length || 0) >= 2);
@@ -102,11 +104,11 @@ function stripPronunciation(text) {   // drops IPA or respelling segments inside
     let depth = 0, j = i; for (; j < text.length; j += 1) { if (text[j] === '(') depth += 1; else if (text[j] === ')') { depth -= 1; if (depth === 0) break; } }
     const inner = text.slice(i + 1, j); const parts = []; let d = 0, cur = '';
     for (const ch of inner) { if (ch === '(' || ch === '[') d += 1; if (ch === ')' || ch === ']') d -= 1; if (ch === ';' && d === 0) { parts.push(cur); cur = ''; } else cur += ch; }
-    parts.push(cur); const keep = parts.map(x => x.trim()).filter(x => x && !IPA.test(x));
+    parts.push(cur); const keep = parts.map(x => x.trim()).map(x => (IPA.test(x) || /pronunciation/i.test(x) ? x.split(/,\s*/).filter(y => y && !IPA.test(y) && !/pronunciation/i.test(y)).join(', ') : x)).filter(Boolean);
     if (!keep.length) out = out.replace(/\s+$/, ''); else out += '(' + keep.join('; ') + ')';
     i = j + 1;
   }
-  return out;
+  return out.replace(/\(\s*[,;]\s*/g, '(');
 }
 const ABBR = /(?:\b(?:Mr|Mrs|Ms|Dr|St|Jr|Sr|Mt|vs|No|Inc|Ltd|Co|Corp|Prof)|\b[A-Z])\.$/;
 const lead = t => { if (!t) return ''; let s = t.replace(/\s+/g, ' ').trim();
@@ -123,7 +125,7 @@ const filmList = [...films.values()].sort((a, b) => b.cast.length + b.dir.length
 for (const f of filmList) { const n = links.get(f.id); if (n) f.pop = n; }
 const dataset = { meta: { generated: new Date().toISOString().slice(0, 10), films: filmList.length, people: peopleOut.length, franchises: franchises.size, trilogies: trilogies.length + [...franchises.values()].filter(f => f.k === 'trilogy').length,
     sources: [{ name: 'Wikidata', license: 'CC0 1.0', url: 'https://www.wikidata.org', use: 'films, people, credits, genres, franchises, sequels, sources and awards' }, { name: 'Wikipedia (English)', license: 'CC BY-SA 4.0', url: 'https://en.wikipedia.org', use: 'lead paragraphs for synopses and biographies; each carries its article title' }, { name: 'Editorial', license: 'this project', url: 'docs/DATA.md', use: 'the trilogy list from the product brief, resolved to dataset titles' }],
-    selection: 'Instance of film (or a subclass) with at least 45 Wikidata sitelinks, plus members of the same franchise with at least 15, plus the titles named in the product brief.', noPosters: 'Posters are not redistributed: the app draws a generated title card from each film’s data.', alterations: 'Wikipedia lead paragraphs are shortened to their first sentences and pronunciation guides are removed.', released: 'Films whose first release date is after the snapshot date are excluded.' },
+    selection: 'Instance of film (or a subclass) with at least 45 Wikidata sitelinks; plus, for 30 countries outside the US and UK, up to 36 of that country’s most widely documented films (at least 22 sitelinks) so the catalog is not only English-language cinema; plus members of an included film series with at least 15 sitelinks; plus the titles named in the product brief. Films not yet released at the snapshot date are excluded.', noPosters: 'Posters are not redistributed: the app draws a generated title card from each film’s data.', alterations: 'Wikipedia lead paragraphs are shortened to their first sentences and pronunciation guides are removed.', released: 'Films whose first release date is after the snapshot date are excluded.' },
   genres: COARSE.map(([gid, name]) => ({ id: gid, n: name })), films: filmList, people: peopleOut, franchises: [...franchises.values()], trilogies };
 await mkdir(OUT, { recursive: true }); await writeFile(OUT + 'cineverse.json', JSON.stringify(dataset));
 const kb = Buffer.byteLength(JSON.stringify(dataset)) / 1024;

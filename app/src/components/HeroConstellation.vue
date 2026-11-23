@@ -16,6 +16,7 @@ const pool = FAVOURITES.map(t => cat.data.films.find(f => f.t === t)).filter((f)
 const idx = ref(0); const centre = computed(() => pool[idx.value % pool.length] || cat.data.films[0]);
 const shuffle = () => { idx.value += 1; active.value = 0; };
 // An honest sample: the strongest factual links, no per-category cap. Actor links count only where Wikidata records the billing (a lead in both films); studio and producer links are too weak to headline.
+const allFactual = computed(() => neighbors(cat, centre.value.id, st.weights, { includeInferred: false }).filter(p => p.primary.tier === 'fact').length);
 const pool_ = computed(() => neighbors(cat, centre.value.id, st.weights, { includeInferred: false }).filter(p => p.primary.tier === 'fact' && p.primary.type !== 'SAME_STUDIO' && p.primary.type !== 'SAME_PRODUCER' && (p.primary.type !== 'SHARED_ACTOR' || p.primary.why.includes('a lead'))));
 const list = computed<PairRelation[]>(() => pool_.value.slice(0, tall.value ? 6 : 8));
 const active = ref(0);
@@ -55,7 +56,7 @@ const used = computed(() => [...new Set(list.value.map(p => p.primary.category))
           <text :x="n.x" :y="n.y + 13" text-anchor="middle" font-size="12.5" fill="var(--color-dim)">{{ tall ? n.film.y : `${n.film.y} · ${n.p.primary.via?.label ? short(n.p.primary.via.label, 22) : n.p.primary.type.toLowerCase().replace(/_/g, ' ')}` }}</text>
         </g>
       </svg>
-      <figcaption class="hero-why" aria-live="polite"><b>{{ centre.t }}</b> ↔ <b>{{ nodes[active]?.film.t }}</b> · {{ explain }} <span class="text-faint">Strongest {{ list.length }} of {{ pool_.length }} factual links; line thickness is strength.</span></figcaption>
+      <figcaption class="hero-why" aria-live="polite"><b>{{ centre.t }}</b> ↔ <b>{{ nodes[active]?.film.t }}</b> · {{ explain }} <span class="text-faint">Strongest {{ list.length }} of {{ pool_.length }} links (sequels, franchises, directors, writers, composers, recorded leads); {{ allFactual }} factual links in all. Line thickness is strength.</span></figcaption>
       <div class="hero-key"><span v-for="c in used" :key="c" class="chip"><i :style="{ background: CATEGORY_COLOR[c] }" />{{ CATEGORY_LABEL[c] }}</span><button class="btn ghost !min-h-[44px]" @click="shuffle">Another film</button></div>
     </div>
     <nav class="hero-topics" aria-label="Everything on the site">

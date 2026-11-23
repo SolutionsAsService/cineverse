@@ -21,7 +21,7 @@ const kindLabel: Record<string, string> = { narrative: 'Narrative trilogy: one c
   <NotFoundView v-if="!fr" />
   <div v-else class="zone" :class="fr.k === 'trilogy' ? 'zone-trilogy' : 'zone-franchise'"><div class="wrap py-8">
     <nav class="text-sm text-faint mb-4"><RouterLink :to="fr.k === 'trilogy' ? '/trilogies' : '/franchises'" class="hover:text-gold">{{ fr.k === 'trilogy' ? 'Trilogies' : 'Franchises' }}</RouterLink> / {{ fr.n }}</nav>
-    <p class="eyebrow">{{ fr.k === 'trilogy' ? (fr.partial ? 'Trilogy · ' + films.length + ' of 3 films in this catalog' : 'Trilogy') : fr.k === 'universe' ? 'Shared universe' : 'Series' }} · {{ films.length }} films · source: {{ fr.src }}</p>
+    <p class="eyebrow">{{ fr.k === 'trilogy' ? (fr.partial ? 'Listed as a trilogy · only ' + films.length + ' films carry the series statement here' : 'Trilogy') : fr.k === 'universe' ? 'Shared universe' : 'Series' }} · {{ films.length }} films · source: {{ fr.src }}</p>
     <h1 class="display text-4xl lg:text-5xl mt-2">{{ fr.n }}</h1>
     <p v-if="fr.kind" class="mt-3"><span class="chip text-text"><i style="background: var(--color-trilogy)" />{{ kindLabel[fr.kind] }}</span></p><p v-if="fr.note" class="text-dim mt-2 max-w-[62ch]">{{ fr.note }}</p>
     <div class="flex flex-wrap gap-2 mt-5"><RouterLink :to="{ path: '/explore', query: { film: films[0]?.id } }" class="btn primary">Open on the map</RouterLink>

@@ -23,7 +23,7 @@ const filmsOf = (id: string) => cat.filmsOfFranchise(id);
         <div>
           <p class="eyebrow">The interactive movie connection atlas</p>
           <h1 class="display text-[clamp(1.9rem,5.2vw,4.4rem)] mt-3">Every movie has a story. <span class="text-gold">Every movie connects.</span></h1>
-          <p class="text-dim text-[17px] mt-4 max-w-[46ch] hidden sm:block">A map of {{ cat.data.films.length.toLocaleString() }} films joined by who made them, who starred in them, and what they belong to. Start with one and follow the lines.</p>
+          <p class="text-dim text-[17px] mt-4 max-w-[46ch] hidden sm:block">A map of {{ cat.data.films.length.toLocaleString() }} films joined by who made them, who starred in them, and what they belong to. Start with one and follow the lines. <RouterLink to="/about" class="underline">How the films were chosen</RouterLink>.</p>
           <div class="hidden sm:flex flex-wrap gap-3 mt-5"><RouterLink to="/explore" class="btn primary">Open the map</RouterLink><button class="btn" @click="$emit('search')">Search a film</button></div>
         </div>
         <HeroConstellation />

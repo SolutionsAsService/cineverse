@@ -40,3 +40,14 @@ test('Wikipedia excerpts are whole sentences with no pronunciation guides', () =
   for (const f of data.films) if (f.ex) { assert.ok(!/[ˈˌə]/.test(f.ex), `${f.t}: pronunciation guide left in`); assert.match(f.ex, /[.!?…”")]$/, `${f.t}: excerpt does not end on a sentence`); }
   for (const p of data.people) if (p.ex) assert.ok(!/[ˈˌə]/.test(p.ex), `${p.n}: pronunciation guide left in`);
 });
+
+test('studio catalogues are not franchises, and duplicate series are merged', () => {
+  for (const f of data.franchises) assert.ok(!/animation studios|feature films?$|walt disney/i.test(f.n), `${f.n} is a studio catalogue, not a franchise`);
+  assert.ok(!data.franchises.some(f => /^Eon James Bond/i.test(f.n)), 'Eon James Bond series duplicates James Bond');
+});
+test('partial trilogies are flagged, and excerpts have no stray punctuation from removed guides', () => {
+  for (const t of data.franchises.filter(f => f.k === 'trilogy')) assert.equal(!!t.partial, t.films.length < 3, `${t.n}: partial flag`);
+  for (const f of data.films) if (f.ex) assert.ok(!/\(\s*[,;]/.test(f.ex), `${f.t}: stray punctuation after a removed pronunciation`);
+  for (const p of data.people) if (p.ex) assert.ok(!/\(\s*[,;]/.test(p.ex), `${p.n}: stray punctuation after a removed pronunciation`);
+});
+test('the selection rule shipped in the data names the country balance', () => { assert.match(data.meta.selection, /30 countries/); assert.match(data.meta.selection, /not yet released/); });

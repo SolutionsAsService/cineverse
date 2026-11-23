@@ -109,7 +109,7 @@ void router;
 .side { border-right: 1px solid var(--color-line); } .detail { border-left: 1px solid var(--color-line); }
 .drawer-only { display: none; } @media (max-width: 1180px) { .drawer-only { display: inline-flex; } }
 .side-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.stage { position: relative; min-width: 0; min-height: 0; height: 100%; background: linear-gradient(rgba(201, 164, 92, .06) 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, rgba(201, 164, 92, .06) 1px, transparent 1px) 0 0 / 64px 64px, radial-gradient(900px 600px at 50% 40%, #1a1721, var(--color-ink)); }
+.stage { position: relative; min-width: 0; min-height: 0; height: 100%; background: linear-gradient(rgba(201, 164, 92, .11) 1px, transparent 1px) 0 0 / 64px 64px, linear-gradient(90deg, rgba(201, 164, 92, .11) 1px, transparent 1px) 0 0 / 64px 64px, radial-gradient(900px 600px at 50% 40%, #1a1721, var(--color-ink)); }
 .topbar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; pointer-events: none; z-index: 6; }
 .topbar .field { min-width: 0; flex: 1 1 140px; max-width: 260px; }
 .topbar form { max-width: 100%; }

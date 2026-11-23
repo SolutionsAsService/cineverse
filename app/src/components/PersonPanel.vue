@@ -21,7 +21,7 @@ const hasBilling = computed(() => credits.value.some(c => c.role === 'cast' && c
     <header><p class="eyebrow">{{ roles.map(r => ROLE_LABEL[r]).join(' · ') }}<template v-if="p.b"> · born {{ p.b }}<template v-if="p.d">, died {{ p.d }}</template></template></p>
       <h2 class="display text-3xl mt-1">{{ p.n }}</h2><p v-if="p.de" class="text-faint text-sm">{{ p.de }}</p></header>
     <p v-if="p.ex" class="text-dim leading-relaxed">{{ p.ex }}</p>
-    <p v-if="p.ex" class="text-xs text-faint -mt-2">Biography: <a :href="wiki" class="underline" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA 4.0). Facts: Wikidata (CC0).</p>
+    <p v-if="p.ex" class="text-xs text-faint -mt-2">Biography: <a :href="wiki" class="underline" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA 4.0, shortened). Facts: Wikidata (CC0).</p>
     <div class="flex flex-wrap gap-2"><button v-if="graph" class="btn primary" @click="emit('expand')">Show filmography on the map</button><RouterLink v-else :to="{ path: '/explore', query: { person: id } }" class="btn primary">Show on the map</RouterLink></div>
     <div v-if="!graph" class="flex flex-wrap gap-1" role="group" aria-label="Filter filmography by role"><button class="btn !min-h-11 !px-3" :class="filter === 'all' ? 'on' : 'ghost'" @click="filter = 'all'">All</button><button v-for="r in roles" :key="r" class="btn !min-h-11 !px-3" :class="filter === r ? 'on' : 'ghost'" @click="filter = r">{{ ROLE_LABEL[r] }}</button><button v-if="hasBilling" class="btn !min-h-11 !px-3" :class="filter === 'lead' ? 'on' : 'ghost'" @click="filter = 'lead'">Leading roles</button></div>
     <section><h3 class="eyebrow mb-2">Filmography · {{ films.length }}</h3>

@@ -18,6 +18,7 @@ export const router = createRouter({
     { path: '/paths', name: 'paths', component: () => import('./views/PathsView.vue'), meta: { title: 'Six degrees of cinema' } },
     { path: '/collections', name: 'collections', component: () => import('./views/CollectionsView.vue'), meta: { title: 'Collections' } },
     { path: '/search', name: 'search', component: () => import('./views/SearchView.vue'), meta: { title: 'Search' } },
+    { path: '/about', name: 'about', component: () => import('./views/AboutView.vue'), meta: { title: 'About the data' } },
     { path: '/:pathMatch(.*)*', name: 'notfound', component: () => import('./views/NotFoundView.vue'), meta: { title: 'Not found' } },
   ],
 });
