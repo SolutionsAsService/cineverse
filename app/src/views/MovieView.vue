@@ -15,7 +15,7 @@ const sequence = computed(() => (f.value && series.value[0] ? cat.filmsOfFranchi
 <template>
   <NotFoundView v-if="!f" />
   <div v-else class="zone"><div class="wrap py-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-    <div><nav class="text-sm text-faint mb-4" aria-label="Breadcrumb"><RouterLink to="/" class="hover:text-gold">Home</RouterLink> / <RouterLink to="/explore" class="hover:text-gold">Map</RouterLink> / {{ f.t }}</nav><MovieDetailPanel :id="f.id" show-connections @focus="id => $router.push(`/movie/${id}`)" />
+    <div><nav class="text-sm text-faint mb-4" aria-label="Breadcrumb"><RouterLink to="/" class="hover:text-gold">Home</RouterLink> / <RouterLink to="/explore" class="hover:text-gold">Map</RouterLink> / {{ f.t }}</nav><MovieDetailPanel :id="f.id" show-connections h1 @focus="id => $router.push(`/movie/${id}`)" />
       <section v-if="sequence.length > 1" class="mt-8"><h2 class="display text-xl mb-3">{{ series[0].n }}</h2><div class="rail"><FilmTile v-for="s in sequence" :key="s.id" :film="s" :sub="`${s.y}${s.id === f.id ? ' · this film' : ''}`" /></div></section></div>
     <aside><h2 class="display text-2xl mb-3">What to watch next</h2><DiscoveryPanel :film-id="f.id" @add="id => $router.push({ path: '/explore', query: { film: id } })" /></aside>
   </div></div>

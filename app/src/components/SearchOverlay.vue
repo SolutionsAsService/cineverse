@@ -7,10 +7,11 @@ import { useLibrary } from '@/stores/library';
 import type { Hit } from '@/lib/search';
 const open = defineModel<boolean>('open', { default: false });
 const catalog = useCatalog(), lib = useLibrary(), router = useRouter();
-const q = ref(''); const input = ref<HTMLInputElement>(); const active = ref(0);
+const q = ref(''); const input = ref<HTMLInputElement>(); const active = ref(0); const box = ref<HTMLElement>(); let opener: HTMLElement | null = null;
 const hits = computed<Hit[]>(() => (q.value.trim() ? catalog.index!.search(q.value, undefined, 10) : []));
 const popular = computed(() => catalog.cat!.data.films.slice(0, 6));
-watch(open, async v => { if (v) { q.value = ''; active.value = 0; await nextTick(); input.value?.focus(); } });
+watch(open, async v => { const app = document.getElementById('app'); if (v) { opener = document.activeElement as HTMLElement; app?.setAttribute('inert', ''); q.value = ''; active.value = 0; await nextTick(); input.value?.focus(); } else { app?.removeAttribute('inert'); opener?.focus?.(); } });
+function trap(e: KeyboardEvent) { if (e.key !== 'Tab' || !box.value) return; const f = [...box.value.querySelectorAll<HTMLElement>('input, button, [tabindex="0"]')].filter(x => !x.hasAttribute('disabled')); if (!f.length) return; const first = f[0], last = f[f.length - 1]; if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); } else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); } }
 watch(hits, () => { active.value = 0; });
 onKeyStroke('k', e => { if (e.metaKey || e.ctrlKey) { e.preventDefault(); open.value = !open.value; } });
 onKeyStroke('Escape', () => { open.value = false; });
@@ -30,13 +31,14 @@ function key(e: KeyboardEvent) {
 <template>
   <Teleport to="body">
     <div v-if="open" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Search" @click.self="open = false">
-      <div class="panel mx-auto mt-[8vh] w-[min(640px,94vw)] max-h-[80vh] overflow-hidden flex flex-col shadow-2xl">
+      <div ref="box" class="panel mx-auto mt-[8vh] w-[min(640px,94vw)] max-h-[80vh] overflow-hidden flex flex-col shadow-2xl" @keydown="trap">
         <div class="p-3 border-b border-line">
-          <input ref="input" v-model="q" class="field" type="search" placeholder="Search a film, director, actor, genre or franchise" role="combobox" aria-expanded="true" aria-controls="search-results" aria-autocomplete="list" autocomplete="off" @keydown="key" />
+          <input ref="input" v-model="q" class="field" type="search" placeholder="Search a film, director, actor, genre or franchise" role="combobox" aria-label="Search films, people, genres and franchises" :aria-expanded="hits.length > 0" aria-controls="search-results" aria-autocomplete="list" :aria-activedescendant="hits.length ? `sr-${active}` : undefined" autocomplete="off" @keydown="key" />
+          <p class="sr-only" role="status">{{ q.trim() ? `${hits.length} results` : '' }}</p>
         </div>
         <ul id="search-results" role="listbox" class="overflow-auto">
-          <li v-for="(h, i) in hits" :key="h.kind + h.id" role="option" :aria-selected="i === active">
-            <button class="w-full min-h-12 px-4 py-2 flex items-center gap-3 text-left border-b border-line/50" :class="i === active ? 'bg-panel2' : ''" @click="go(h, $event)" @mousemove="active = i">
+          <li v-for="(h, i) in hits" :id="`sr-${i}`" :key="h.kind + h.id" role="option" :aria-selected="i === active">
+            <button tabindex="-1" class="w-full min-h-12 px-4 py-2 flex items-center gap-3 text-left border-b border-line/50" :class="i === active ? 'bg-panel2' : ''" @click="go(h, $event)" @mousemove="active = i">
               <span class="chip shrink-0">{{ KIND[h.kind] }}</span><span class="min-w-0 flex-1"><b class="block truncate">{{ h.title }}</b><span class="block text-sm text-faint truncate">{{ h.sub }}</span></span><span class="text-xs text-faint shrink-0">{{ h.kind === 'film' ? 'Opens on the map' : 'Opens its page' }}</span>
             </button>
           </li>

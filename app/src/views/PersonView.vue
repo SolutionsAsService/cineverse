@@ -8,4 +8,4 @@ const props = defineProps<{ id: string }>();
 const cat = useCatalog().cat!;
 const p = computed(() => cat.person.get(props.id));
 </script>
-<template><NotFoundView v-if="!p" /><div v-else class="zone zone-person"><div class="wrap py-8 max-w-4xl"><nav class="text-sm text-faint mb-4" aria-label="Breadcrumb"><RouterLink to="/people" class="hover:text-gold">People</RouterLink> / {{ p.n }}</nav><PersonPanel :id="id" /></div></div></template>
+<template><NotFoundView v-if="!p" /><div v-else class="zone zone-person"><div class="wrap py-8 max-w-4xl"><nav class="text-sm text-faint mb-4" aria-label="Breadcrumb"><RouterLink to="/people" class="hover:text-gold">People</RouterLink> / {{ p.n }}</nav><PersonPanel :id="id" h1 /></div></div></template>

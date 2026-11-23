@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
+import { useCatalog } from './stores/catalog';
 
 // Hash history: the site is plain static files on Shadw and Vercel, so there is no server rewrite for deep links.
 export const router = createRouter({
@@ -22,4 +23,9 @@ export const router = createRouter({
     { path: '/:pathMatch(.*)*', name: 'notfound', component: () => import('./views/NotFoundView.vue'), meta: { title: 'Not found' } },
   ],
 });
-router.afterEach(to => { document.title = (to.meta.title ? String(to.meta.title) + ' · ' : '') + 'CINEVERSE'; });
+router.afterEach(to => {
+  let t = to.meta.title ? String(to.meta.title) : '';
+  const cat = useCatalog().cat; const id = String(to.params.id || '');
+  if (cat && id) { if (to.name === 'movie') t = cat.film.get(id)?.t || 'Not found'; else if (to.name === 'person') t = cat.person.get(id)?.n || 'Not found'; else if (to.name === 'genre') t = (cat.genreName.get(id) || 'Genre') + ' films'; else if (to.name === 'franchise') t = cat.franchise.get(id)?.n || 'Not found'; }
+  document.title = (t ? t + ' · ' : '') + 'CINEVERSE';
+});

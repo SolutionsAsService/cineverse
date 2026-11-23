@@ -11,6 +11,7 @@ import type { GEdge, GNode } from '@/lib/graph';
 // Cytoscape is only a renderer. The single graph model lives in the explore store (src/lib/graph.ts); this component diffs it into Cytoscape elements.
 const catalog = useCatalog(), ex = useExplore(), st = useSettings();
 const el = ref<HTMLDivElement>(); const tipPinnedUi = computed(() => !!tip.value && (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches)); const tip = ref<{ x: number; y: number; names: string; text: string; more: string[]; tier: string } | null>(null);
+const still = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;   // Cytoscape animates on its own, so CSS alone cannot honour this
 let cy: Core | null = null; let first = true; let tipPinned = false; let ro: ResizeObserver | null = null;
 const emit = defineEmits<{ expand: [id: string]; count: [c: { nodes: number; edges: number }] }>();
 const franchiseHue = (id: string) => { let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 360; return `hsl(${h} 55% 58%)`; };
@@ -43,7 +44,7 @@ function sync() {
     // a film left with no visible line only because of a relationship filter is hidden too (the selected node and pinned nodes stay)
     cy!.nodes().forEach(n => { const edges = n.connectedEdges(); const orphan = edges.length > 0 && edges.filter('.off').length === edges.length && n.id() !== ex.selected && !ex.pinned.has(n.id()); n.toggleClass('off', orphan); });
   });
-  emit('count', { nodes: cy.nodes(':visible').length, edges: cy.edges(':visible').length });
+  { const vis = [...g.edges.values()].filter(e => !ex.hidden.has(e.category)); const withLine = new Set(vis.flatMap(e => [e.source, e.target])); const connectedAny = new Set([...g.edges.values()].flatMap(e => [e.source, e.target])); const nodes = [...g.nodes.keys()].filter(id => withLine.has(id) || !connectedAny.has(id) || id === ex.selected || ex.pinned.has(id)).length; emit('count', { nodes, edges: vis.length }); }
   decorate();
 }
 function decorate() {
@@ -51,7 +52,7 @@ function decorate() {
   const sel = ex.selected ? cy.getElementById(ex.selected) : null;
   if (sel && sel.length) { const hood = sel.closedNeighborhood(); cy.elements().not(hood).addClass('dim'); sel.addClass('hot'); sel.connectedEdges().addClass('hot'); }
   cy.nodes().forEach(n => { n.toggleClass('pin', ex.pinned.has(n.id())); });
-  cy.elements().removeClass('route'); const r = ex.route; if (r.length) { const set = new Set(r); cy.nodes().filter(n => set.has(n.id())).addClass('route'); cy.edges().filter(e => set.has(e.source().id()) && set.has(e.target().id())).addClass('route'); cy.elements().not('.route').addClass('dim'); }
+  cy.elements().removeClass('route'); const r = ex.route; if (r.length) { const set = new Set(r); cy.nodes().filter(n => set.has(n.id())).addClass('route'); r.forEach((id, i) => { const n = cy!.getElementById(id); if (n.length) n.data('label', `${i + 1}. ${String(n.data('label')).replace(/^\d+\. /, '')}`); }); cy.edges().filter(e => set.has(e.source().id()) && set.has(e.target().id())).addClass('route'); cy.elements().not('.route').addClass('dim'); }
 }
 function layout(opts: { fit?: boolean } = {}) {
   if (!cy || cy.nodes().length === 0) return;
@@ -62,7 +63,7 @@ function layout(opts: { fit?: boolean } = {}) {
     cy.fit(undefined, 60); return;
   }
   cy.one('layoutstop', () => { if (!opts.fit) focusSelected(); });
-  cy.layout({ name: 'cose', animate: !first, animationDuration: 450, randomize: false, fit: opts.fit ?? first, padding: 50, nodeRepulsion: () => 9000, idealEdgeLength: (e: cytoscape.EdgeSingular) => (e.data('category') === 'franchise' || e.data('category') === 'trilogy' ? 70 : 120), edgeElasticity: () => 80, gravity: .35, numIter: 700, nodeOverlap: 22 } as cytoscape.LayoutOptions).run();
+  cy.layout({ name: 'cose', animate: !first && !still, animationDuration: 450, randomize: false, fit: opts.fit ?? first, padding: 50, nodeRepulsion: () => 9000, idealEdgeLength: (e: cytoscape.EdgeSingular) => (e.data('category') === 'franchise' || e.data('category') === 'trilogy' ? 70 : 120), edgeElasticity: () => 80, gravity: .35, numIter: 700, nodeOverlap: 22 } as cytoscape.LayoutOptions).run();
   first = false;
 }
 onMounted(() => {
@@ -75,7 +76,7 @@ onMounted(() => {
       { selector: 'node.hot', style: { 'border-color': '#c9a45c', 'border-width': 3.2, 'z-index': 20 } },
       { selector: 'node.pin', style: { 'border-style': 'double', 'border-width': 4 } },
       { selector: 'node.dim, edge.dim', style: { opacity: .16 } },
-      { selector: 'edge', style: { width: 'data(w)', 'line-color': 'data(color)', 'curve-style': 'bezier', opacity: .5, 'target-arrow-shape': 'none' } },
+      { selector: 'edge', style: { width: 'data(w)', 'line-color': 'data(color)', 'curve-style': 'bezier', opacity: .85, 'target-arrow-shape': 'none' } },
       { selector: 'edge[?factual]', style: { 'line-style': 'solid' } }, { selector: 'edge[!factual]', style: { 'line-style': 'dashed', 'line-dash-pattern': [6, 5] } },
       { selector: 'edge.hot', style: { opacity: 1, width: 3.4, 'z-index': 15 } },
       { selector: 'node.route', style: { 'border-color': '#c9a45c', 'border-width': 3.4, opacity: 1 } }, { selector: 'edge.route', style: { 'line-color': '#c9a45c', width: 4.5, opacity: 1, 'z-index': 30 } },
@@ -92,14 +93,14 @@ onMounted(() => {
   sync(); layout({ fit: true });
 });
 watch(() => ex.version, () => { const had = cy?.nodes().length || 0; sync(); const d = ex.lastDelta; if (!d || d.nodes.length || !had) layout({ fit: !had }); });
-function focusSelected() { if (!cy || !ex.selected) return; const n = cy.getElementById(ex.selected); if (!n.length) return; const hood = n.closedNeighborhood().nodes(':visible'); if (cy.nodes().length > 22 && hood.length > 1) cy.animate({ fit: { eles: hood, padding: 70 }, duration: 320 }); else cy.animate({ center: { eles: n }, duration: 280 }); }
+function focusSelected() { if (!cy || !ex.selected) return; const n = cy.getElementById(ex.selected); if (!n.length) return; const hood = n.closedNeighborhood().nodes(':visible'); if (cy.nodes().length > 22 && hood.length > 1) cy.animate({ fit: { eles: hood, padding: 70 }, duration: still ? 0 : 320 }); else cy.animate({ center: { eles: n }, duration: still ? 0 : 280 }); }
 watch(() => st.mode, () => { sync(); layout({ fit: true }); });
-watch(() => ex.selected, () => { decorate(); const n = ex.selected && cy?.getElementById(ex.selected); if (n && n.length && cy) cy.animate({ center: { eles: n }, duration: 280 }); });
+watch(() => ex.selected, () => { decorate(); const n = ex.selected && cy?.getElementById(ex.selected); if (n && n.length && cy) cy.animate({ center: { eles: n }, duration: still ? 0 : 280 }); });
 onMounted(() => { if (el.value && typeof ResizeObserver === 'function') { ro = new ResizeObserver(() => { cy?.resize(); focusSelected(); }); ro.observe(el.value); } });
 onBeforeUnmount(() => { ro?.disconnect(); cy?.destroy(); cy = null; });
 defineExpose({
   zoom: (f: number) => { if (cy) cy.zoom({ level: cy.zoom() * f, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }); },
-  fit: () => cy?.fit(undefined, 50), center: () => { const n = ex.selected && cy?.getElementById(ex.selected); if (n && n.length && cy) cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1), duration: 280 }); },
+  fit: () => cy?.fit(undefined, 50), center: () => { const n = ex.selected && cy?.getElementById(ex.selected); if (n && n.length && cy) cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1), duration: still ? 0 : 280 }); },
   relayout: () => layout({ fit: true }), png: () => cy?.png({ full: true, bg: '#0b0a0c', scale: 1.5 }),
 });
 const legendCats = Object.entries(CATEGORY_LABEL);
@@ -108,7 +109,7 @@ void legendCats;
 
 <template>
   <div class="absolute left-0" style="top: var(--gt, 0px); right: var(--gr, 58px); bottom: var(--gb, 0px)">
-    <div ref="el" class="w-full h-full" role="application" aria-label="Interactive movie map. Select a film to see its connections; the connection list in the side panel carries the same information as text." />
+    <div ref="el" class="w-full h-full" role="group" aria-label="Interactive movie map. Select a film to see its connections; the connection list in the side panel carries the same information as text." />
     <div v-if="tip" class="absolute z-10 panel px-3 py-2 text-sm max-w-[300px] shadow-xl" :class="tipPinnedUi ? '' : 'pointer-events-none'" :style="{ left: Math.min(tip.x + 14, 9999) + 'px', top: tip.y + 14 + 'px' }">
       <p class="font-semibold mb-1">{{ tip.names }}</p>
       <p><span class="eyebrow mr-2">{{ tip.tier === 'fact' ? 'Fact' : tip.tier === 'label' ? 'Shared label' : 'Inferred' }}</span>{{ tip.text }}</p>

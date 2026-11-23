@@ -5,7 +5,7 @@ import { useCatalog } from '@/stores/catalog';
 import FilmTile from './FilmTile.vue';
 import Fingerprint from './Fingerprint.vue';
 import { ROLE_LABEL, type Role } from '@/lib/types';
-const props = defineProps<{ id: string; graph?: boolean }>();
+const props = defineProps<{ id: string; graph?: boolean; h1?: boolean }>();
 const emit = defineEmits<{ expand: []; add: [id: string] }>();
 const cat = useCatalog().cat!;
 const p = computed(() => cat.person.get(props.id)!);
@@ -19,7 +19,7 @@ const hasBilling = computed(() => credits.value.some(c => c.role === 'cast' && c
 <template>
   <article class="grid grid-cols-1 gap-4" :aria-label="p.n">
     <header><p class="eyebrow">{{ roles.map(r => ROLE_LABEL[r]).join(' · ') }}<template v-if="p.b"> · born {{ p.b }}<template v-if="p.d">, died {{ p.d }}</template></template></p>
-      <h2 class="display text-3xl mt-1">{{ p.n }}</h2><p v-if="p.de" class="text-faint text-sm">{{ p.de }}</p></header>
+      <component :is="h1 ? 'h1' : 'h2'" class="display text-3xl mt-1">{{ p.n }}</component><p v-if="p.de" class="text-faint text-sm">{{ p.de }}</p></header>
     <p v-if="p.ex" class="text-dim leading-relaxed">{{ p.ex }}</p>
     <p v-if="p.ex" class="text-xs text-faint -mt-2">Biography: <a :href="wiki" class="underline" target="_blank" rel="noopener">Wikipedia</a> (CC BY-SA 4.0, shortened). Facts: Wikidata (CC0).</p>
     <div class="flex flex-wrap gap-2"><button v-if="graph" class="btn primary" @click="emit('expand')">Show filmography on the map</button><RouterLink v-else :to="{ path: '/explore', query: { person: id } }" class="btn primary">Show on the map</RouterLink></div>

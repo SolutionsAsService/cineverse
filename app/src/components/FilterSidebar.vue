@@ -24,7 +24,7 @@ const relTypes = Object.values(REL_DEFS).sort((a, b) => b.weight - a.weight);
       <label class="grid grid-cols-1 gap-1"><span>New connections per expand: <b>{{ st.branch }}</b></span><input v-model.number="st.branch" type="range" min="4" max="30" class="w-full min-h-11 accent-[var(--color-gold)]" /></label>
       <label class="grid grid-cols-1 gap-1"><span>Node limit: <b>{{ st.nodeLimit }}</b></span><input v-model.number="st.nodeLimit" type="range" min="30" max="300" step="10" class="w-full min-h-11 accent-[var(--color-gold)]" /></label>
       <label class="flex items-center gap-3 min-h-11"><input v-model="st.hubs" type="checkbox" class="w-6 h-6 min-w-6 accent-[var(--color-gold)]" /><span>Show director, leads, genre and franchise as nodes when expanding</span></label></section>
-    <details><summary class="eyebrow cursor-pointer min-h-11 flex items-center">Relationship weights</summary>
+    <details><summary class="eyebrow cursor-pointer min-h-11 flex items-center">Adjust relationship weights (open)</summary>
       <p class="text-xs text-faint my-2">How strongly each kind of link ranks. Changing a weight re-orders what is added next.</p>
       <div class="grid grid-cols-1 gap-2"><label v-for="t in relTypes" :key="t.type" class="grid grid-cols-1 gap-0.5"><span class="flex justify-between"><span>{{ t.label }}</span><b>{{ st.weights[t.type as RelType] }}</b></span><input v-model.number="st.weights[t.type as RelType]" type="range" min="0" max="100" class="w-full min-h-11 accent-[var(--color-gold)]" :aria-label="`${t.label} weight`" /></label></div>
       <button class="btn ghost mt-2" @click="st.resetWeights()">Reset to defaults</button></details>

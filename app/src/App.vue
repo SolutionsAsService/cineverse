@@ -8,10 +8,11 @@ import SiteFooter from '@/components/SiteFooter.vue';
 import { useRoute } from 'vue-router';
 const catalog = useCatalog(); const searchOpen = ref(false); const route = useRoute();
 onMounted(() => { catalog.load(); });
+function skip() { const m = document.getElementById('main'); m?.focus(); m?.scrollIntoView(); }
 </script>
 
 <template>
-  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] btn primary">Skip to content</a>
+  <a href="#/" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] btn primary" @click.prevent="skip">Skip to content</a>
   <NavigationBar @search="searchOpen = true" />
   <main id="main" tabindex="-1">
     <StateBlock v-if="catalog.status !== 'ready'" :status="catalog.status" :error="catalog.error" @retry="catalog.load()" />

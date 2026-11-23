@@ -17,7 +17,7 @@ const cat = useCatalog().cat!, ex = useExplore(), st = useSettings(), route = us
 const graph = ref<InstanceType<typeof MovieGraph>>(); const showSide = ref(false); const sheet = ref(true); const wide = () => window.innerWidth > 1180; const tab = ref<'details' | 'discover'>('details'); const find = ref(''); const copied = ref('');
 const node = computed(() => (ex.selected ? ex.graph.nodes.get(ex.selected) : null));
 const counts = ref({ n: 0, e: 0 }); const onCount = (c: { nodes: number; edges: number }) => { counts.value = { n: c.nodes, e: c.edges }; };
-const saveOpen = ref(false); const saveName = ref('');
+const startNote = ref(''); const saveOpen = ref(false); const saveName = ref('');
 import { useLibrary } from '@/stores/library';
 const lib = useLibrary();
 function saveMap() { const sn = ex.snapshot(); lib.saveMap(saveName.value || `Map from ${cat.film.get(sn.films[0])?.t || 'a film'}`, sn.films, sn.people, st.mode); saveName.value = ''; saveOpen.value = false; ex.say2('Map saved. Find it under Collections, Saved maps.'); }
@@ -27,10 +27,10 @@ function boot() {
   const q = route.query; const set = (v: unknown) => (Array.isArray(v) ? v[0] : v) as string | undefined;
   const map = set(q.map), film = set(q.film), person = set(q.person);
   if (map) { try { const o = JSON.parse(decodeURIComponent(escape(atob(map)))); ex.loadMap((o.f || []).filter((i: string) => cat.film.has(i)), (o.p || []).filter((i: string) => cat.person.has(i))); ex.select(null); } catch { ex.start(cat.data.films[0].id); } }
-  else if (film && !cat.film.has(film)) { ex.start((cat.data.films.find(f => f.t === 'Pulp Fiction') || cat.data.films[0]).id); ex.say2('That film id is not in the catalog. Starting from a popular film: search (⌘K) to choose another.'); }
+  else if (film && !cat.film.has(film)) { ex.start((cat.data.films.find(f => f.t === 'Pulp Fiction') || cat.data.films[0]).id); startNote.value = 'That film is not in the catalog, so this map starts from a popular film. Search (⌘K) to choose another.'; }
   else if (film && cat.film.has(film)) { if (ex.graph.nodes.has('f:' + film)) ex.select('f:' + film); else if (ex.graph.nodes.size) ex.addFilm(film); else ex.start(film); }
   else if (person && cat.person.has(person)) { if (!ex.graph.nodes.size) ex.reset(); ex.addPerson(person); }
-  else if (!ex.graph.nodes.size) { ex.start((cat.data.films.find(f => f.t === 'Pulp Fiction') || cat.data.films[0]).id); ex.say2('Starting from a popular film. Search (⌘K) to pick your own.'); }
+  else if (!ex.graph.nodes.size) { ex.start((cat.data.films.find(f => f.t === 'Pulp Fiction') || cat.data.films[0]).id); startNote.value = 'You did not pick a film, so this map starts from a popular one. Search (⌘K) to choose your own.'; }
   const rt = set(q.route); ex.route.splice(0); if (rt) ex.setRoute(rt.split(',').filter(x => x.startsWith('f:') || x.startsWith('p:')));
 }
 onMounted(() => { boot(); if (!wide()) sheet.value = false; });
@@ -38,7 +38,7 @@ const detailEl = ref<HTMLElement>();
 watch(() => ex.selected, () => { detailEl.value && (detailEl.value.scrollTop = 0); });
 watch(() => ex.selected, (v, o) => { if (v && v !== o && ex.version > 0 && !wide() && graphTapped.value) sheet.value = true; if (!v) sheet.value = false; });
 const graphTapped = ref(false);
-watch(() => [route.query.film, route.query.person, route.query.map], () => { if (route.name === 'explore') boot(); });
+watch(() => [route.query.film, route.query.person, route.query.map], () => { startNote.value = ''; if (route.name === 'explore') boot(); });
 function expand(id?: string, only?: Category[]) { const target = id || ex.selected; if (target) ex.expand(target, only); }
 const findGo = () => { const q = norm(find.value); if (!q) return; const hit = [...ex.graph.nodes.values()].find(n => norm(n.label).includes(q)); if (hit) { ex.select(hit.id); graph.value?.center(); } };
 async function share() { const s = ex.snapshot(); const code = btoa(unescape(encodeURIComponent(JSON.stringify({ f: s.films, p: s.people })))); const url = location.origin + location.pathname + '#/explore?map=' + encodeURIComponent(code); try { await navigator.clipboard.writeText(url); copied.value = 'Link copied: it opens this exact map.'; } catch { copied.value = 'Copy failed: ' + url.slice(0, 60) + '…'; } setTimeout(() => (copied.value = ''), 2500); }
@@ -74,6 +74,7 @@ void router;
       </div>
       <p v-if="ex.notice" class="notice panel" role="status">{{ ex.notice }}</p>
       <p v-if="ex.toast" class="toast panel" role="status">{{ ex.toast }}</p>
+      <p v-if="startNote" class="startnote panel" role="status">{{ startNote }} <button class="btn ghost !min-h-11" @click="startNote = ''">Dismiss</button></p>
       <p v-if="counts.n <= 1" class="notice panel" role="status">Search a film (⌘K) or pick one from the home page to start a map.</p>
       <div class="strip" aria-label="Release years of films on the map">
         <svg :viewBox="`0 0 600 34`" class="w-full h-[34px]" preserveAspectRatio="none" role="img" :aria-label="`${years.length} films from ${yr[0]} to ${yr[1]}`">
@@ -118,6 +119,7 @@ void router;
 .zoom { position: absolute; right: 10px; top: 64px; display: grid; gap: 6px; }
 .zoom .btn { min-width: 44px; padding: 0 10px; background: color-mix(in srgb, var(--color-panel) 92%, transparent); }
 .toast { position: absolute; left: 50%; transform: translateX(-50%); top: 64px; padding: 10px 14px; max-width: min(560px, 90%); font-size: 14px; border-color: var(--color-gold); z-index: 5; }
+.startnote { position: absolute; left: 50%; transform: translateX(-50%); top: 110px; padding: 8px 12px; max-width: min(560px, 92%); font-size: 14px; z-index: 5; }
 .notice { position: absolute; left: 50%; transform: translateX(-50%); bottom: 84px; padding: 10px 14px; max-width: min(520px, 90%); font-size: 14px; }
 .strip { position: absolute; left: 10px; right: 64px; bottom: 8px; padding: 2px 8px; background: color-mix(in srgb, var(--color-panel) 88%, transparent); border: 1px solid var(--color-line); border-radius: 6px; }
 .key { position: absolute; left: 10px; bottom: 50px; display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--color-dim); max-width: calc(100% - 80px); }

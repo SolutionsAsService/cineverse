@@ -8,7 +8,7 @@ import { neighbors } from '@/lib/relations';
 import { titleCard } from '@/lib/poster';
 import { ROLE_LABEL, type Category } from '@/lib/types';
 import RelationBadge from './RelationBadge.vue';
-const props = defineProps<{ id: string; graph?: boolean; showConnections?: boolean }>();
+const props = defineProps<{ id: string; graph?: boolean; showConnections?: boolean; h1?: boolean }>();
 const emit = defineEmits<{ expand: [category?: Category]; focus: [id: string]; add: [id: string] }>();
 const cat = useCatalog().cat!, lib = useLibrary(), st = useSettings();
 const f = computed(() => cat.film.get(props.id)!);
@@ -25,7 +25,7 @@ const collectionPick = (e: Event) => { const v = (e.target as HTMLSelectElement)
       <img :src="titleCard(f, cat.primaryGenre(f))" :alt="`Generated title card for ${f.t}`" width="100" height="150" class="rounded border border-line shrink-0" title="A generated title card, not the film's poster" />
       <div class="min-w-0">
         <p class="eyebrow">{{ f.y }}<template v-if="f.rt"> · {{ f.rt }} min</template><template v-if="f.cn[0]"> · {{ f.cn[0] }}</template></p>
-        <h2 class="display text-2xl mt-1">{{ f.t }}</h2>
+        <component :is="h1 ? 'h1' : 'h2'" class="display text-2xl mt-1">{{ f.t }}</component>
         <p v-if="f.ot" class="text-sm text-faint">{{ f.ot }}</p>
         <div class="flex flex-wrap gap-1 mt-2"><RouterLink v-for="g in f.g" :key="g" :to="`/genre/${g}`" class="chip">{{ cat.genreName.get(g) }}</RouterLink><span v-for="s in f.sg.slice(0, 2)" :key="s" class="chip">{{ s }}</span></div>
       </div>
