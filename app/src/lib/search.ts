@@ -23,6 +23,6 @@ export function buildIndex(cat: Catalog): Index {
       for (const k of e.keys) { if (k === nq) s = Math.max(s, 100); else if (k.startsWith(nq)) s = Math.max(s, 85); else if (k.includes(' ' + nq)) s = Math.max(s, 70); else if (k.includes(nq)) s = Math.max(s, 55); }
       if (!s && qt.every(t => e.tokens.some(x => x.startsWith(t)))) s = 60;
       if (!s && nq.length >= 4) { const tol = nq.length >= 7 ? 2 : 1; const ok = qt.every(t => e.tokens.some(x => dl(t, x.slice(0, Math.max(t.length, 1) + 1), tol) <= tol || dl(t, x, tol) <= tol)); if (ok) s = 35; }
-      if (s) hits.push({ kind: e.kind, id: e.id, title: e.title, sub: e.sub, score: s + Math.min(14, e.pop / 9) }); }
+      if (s) hits.push({ kind: e.kind, id: e.id, title: e.title, sub: e.sub, score: s + Math.min(14, e.pop / 9) + (e.kind === 'film' && s >= 85 ? 6 : 0) - (s <= 35 && e.kind === 'person' ? 4 : 0) }); }
     return hits.sort((a, b) => b.score - a.score).slice(0, limit); } };
 }

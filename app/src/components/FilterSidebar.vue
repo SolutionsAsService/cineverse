@@ -8,7 +8,7 @@ import { CATEGORY_COLOR, CATEGORY_LABEL } from '@/lib/types';
 import { REL_DEFS, type RelType } from '@/lib/relations';
 const ex = useExplore(), st = useSettings(), lib = useLibrary();
 const emit = defineEmits<{ load: [films: string[], people: string[]]; share: [] }>();
-const modes: [NodeMode, string, string][] = [['poster', 'Poster', 'Generated title cards'], ['minimal', 'Minimal', 'Dots, for large maps'], ['genre', 'Genre', 'Colour by genre'], ['franchise', 'Franchise', 'Colour and cluster by series'], ['timeline', 'Timeline', 'Left to right by year']];
+const modes: [NodeMode, string, string][] = [['poster', 'Title cards', 'Generated from each film’s data, not posters'], ['minimal', 'Minimal', 'Dots, for large maps'], ['genre', 'Genre', 'Colour by genre'], ['franchise', 'Franchise', 'Colour and cluster by series'], ['timeline', 'Timeline', 'Left to right by year']];
 const name = ref(''); const saved = ref('');
 function save() { const s = ex.snapshot(); lib.saveMap(name.value || 'Untitled map', s.films, s.people, st.mode); name.value = ''; saved.value = 'Saved.'; setTimeout(() => (saved.value = ''), 1800); }
 const relTypes = Object.values(REL_DEFS).sort((a, b) => b.weight - a.weight);
@@ -30,7 +30,8 @@ const relTypes = Object.values(REL_DEFS).sort((a, b) => b.weight - a.weight);
       <button class="btn ghost mt-2" @click="st.resetWeights()">Reset to defaults</button></details>
     <section class="grid grid-cols-1 gap-2"><h2 class="eyebrow">Saved maps</h2>
       <div class="flex gap-2"><input v-model="name" class="field" placeholder="Name this map" aria-label="Map name" @keydown.enter="save" /><button class="btn" @click="save">Save</button></div><p v-if="saved" class="text-cast" role="status">{{ saved }}</p>
-      <ul class="grid grid-cols-1 gap-1"><li v-for="m in lib.s.maps" :key="m.id" class="flex items-center gap-1"><button class="btn ghost flex-1 !justify-start text-left" @click="emit('load', m.films, m.people)">{{ m.name }} <span class="text-faint font-normal">{{ m.films.length }}</span></button><button class="btn ghost" :aria-label="`Delete ${m.name}`" @click="lib.deleteMap(m.id)">×</button></li></ul>
+      <ul class="grid grid-cols-1 gap-1"><li v-for="m in lib.s.maps" :key="m.id" class="flex items-center gap-1"><button class="btn ghost flex-1 !justify-start text-left" @click="emit('load', m.films, m.people)">{{ m.name }} <span class="text-faint font-normal">{{ m.films.length }} films</span></button><button class="btn ghost" :aria-label="`Delete ${m.name}`" @click="lib.deleteMap(m.id)">×</button></li></ul>
       <button class="btn ghost" @click="emit('share')">Copy link to this map</button></section>
+    <p class="text-xs text-faint leading-relaxed">Facts: Wikidata (CC0). Text on film and person panels: Wikipedia, CC BY-SA 4.0, shortened. Title cards are generated, not posters.</p>
   </div>
 </template>

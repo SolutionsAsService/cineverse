@@ -9,7 +9,7 @@ export const useCatalog = defineStore('catalog', () => {
   async function load() {
     if (status.value === 'ready' || status.value === 'loading') return; status.value = 'loading';
     try { const c = await loadCatalog(); cat.value = markRaw(c); index.value = markRaw(buildIndex(c)); status.value = 'ready'; }
-    catch (e) { error.value = e instanceof Error ? e.message : String(e); status.value = 'error'; }
+    catch (e) { const m = e instanceof Error ? e.message : String(e); error.value = /HTTP \d+/.test(m) ? m : 'The catalog file could not be fetched. Check your connection and try again.'; status.value = 'error'; }
   }
   return { cat, index, status, error, load };
 });

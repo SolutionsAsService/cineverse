@@ -4,15 +4,15 @@ import type { Film } from './types';
 import { neighbors, relationsOf, type Relation, type Weights, combine } from './relations';
 
 // ---- Movie DNA: a small, explainable profile. Algorithmic, so it is labelled as inferred wherever it is used.
-export interface Dna { genres: Record<string, number>; era: number; scope: string; length: 'short' | 'standard' | 'long' | 'epic' | 'unknown'; crew: number; seriesPart: boolean; themes: string[] }
+export interface Dna { genres: Record<string, number>; era: number; scope: string[]; length: 'short' | 'standard' | 'long' | 'epic' | 'unknown'; crew: number; seriesPart: boolean; themes: string[] }
 export function dna(cat: Catalog, f: Film): Dna {
   const genres: Record<string, number> = {}; const gs = f.g.length ? f.g : ['drama']; gs.forEach((g, i) => { genres[g] = 1 / (1 + i * .35); });
-  const rt = f.rt; return { genres, era: Math.floor(f.y / 10) * 10, scope: f.cn[0] || 'unknown', length: !rt ? 'unknown' : rt < 90 ? 'short' : rt < 125 ? 'standard' : rt < 160 ? 'long' : 'epic', crew: f.dir.length + f.wr.length + f.co.length + f.dp.length, seriesPart: f.fr.length > 0, themes: f.subj.slice(0, 4) };
+  const rt = f.rt; return { genres, era: Math.floor(f.y / 10) * 10, scope: f.cn, length: !rt ? 'unknown' : rt < 90 ? 'short' : rt < 125 ? 'standard' : rt < 160 ? 'long' : 'epic', crew: f.dir.length + f.wr.length + f.co.length + f.dp.length, seriesPart: f.fr.length > 0, themes: f.subj.slice(0, 4) };
 }
 export function dnaSimilarity(a: Dna, b: Dna): number {
   const keys = new Set([...Object.keys(a.genres), ...Object.keys(b.genres)]); let dot = 0, na = 0, nb = 0;
   for (const k of keys) { const x = a.genres[k] || 0, y = b.genres[k] || 0; dot += x * y; na += x * x; nb += y * y; }
-  const genre = na && nb ? dot / Math.sqrt(na * nb) : 0; const era = Math.max(0, 1 - Math.abs(a.era - b.era) / 60); const scope = a.scope === b.scope ? 1 : 0; const theme = a.themes.some(t => b.themes.includes(t)) ? 1 : 0;
+  const genre = na && nb ? dot / Math.sqrt(na * nb) : 0; const era = Math.max(0, 1 - Math.abs(a.era - b.era) / 60); const scope = a.scope.some(c => b.scope.includes(c)) ? 1 : 0; const theme = a.themes.some(t => b.themes.includes(t)) ? 1 : 0;
   return .55 * genre + .2 * era + .15 * scope + .1 * theme;
 }
 
@@ -20,8 +20,10 @@ export function dnaSimilarity(a: Dna, b: Dna): number {
 export interface Suggestion { film: Film; score: number; why: string[]; relations: Relation[]; factual: boolean }
 export function similar(cat: Catalog, id: string, w: Weights, n = 12): Suggestion[] {
   const A = cat.film.get(id); if (!A) return [];
-  const out = neighbors(cat, id, w, { includeGenre: true }).map(p => { const B = cat.film.get(p.b)!; const d = dnaSimilarity(dna(cat, A), dna(cat, B)); return { film: B, score: Math.min(100, p.strength * .85 + d * 15 + Math.min(8, (B.pop || 0) / 20)), why: p.all.slice(0, 3).map(r => r.why), relations: p.all, factual: p.all.some(r => r.factual) } as Suggestion; });
-  return out.sort((a, b) => b.score - a.score).slice(0, n);
+  // rank = relationships x (1 - share) + Movie DNA similarity x share; the share is the 'Movie DNA share' weight (default 15%). Ties break by how widely documented the film is.
+  const share = Math.max(0, Math.min(1, (w.SIMILAR_DNA / 100) * .43)); const a = dna(cat, A);
+  const out = neighbors(cat, id, w, { includeGenre: true }).map(p => { const B = cat.film.get(p.b)!; const d = dnaSimilarity(a, dna(cat, B)); return { film: B, score: p.strength * (1 - share) + d * 100 * share, why: p.all.slice(0, 3).map(r => r.why), relations: p.all, factual: p.all.some(r => r.tier === 'fact') } as Suggestion; });
+  return out.sort((x, y) => y.score - x.score || (y.film.pop || 0) - (x.film.pop || 0)).slice(0, n);
 }
 
 // ---- Multi-hop: A -> (shared person / franchise) -> B -> (shared person) -> C
@@ -29,8 +31,8 @@ export interface Hop { from: Film; to: Film; relation: Relation }
 export interface Chain { hops: Hop[]; score: number; end: Film }
 export function multiHop(cat: Catalog, id: string, w: Weights, opt: { width?: number; n?: number } = {}): Chain[] {
   const A = cat.film.get(id); if (!A) return []; const width = opt.width ?? 6;
-  const first = neighbors(cat, id, w, { includeInferred: false }).filter(p => p.primary.factual).slice(0, width); const seen = new Set([id, ...first.map(p => p.b)]); const out: Chain[] = [];
-  for (const p of first) { const B = cat.film.get(p.b)!; for (const q of neighbors(cat, B.id, w, { includeInferred: false }).filter(x => x.primary.factual).slice(0, width)) { if (seen.has(q.b)) continue; const C = cat.film.get(q.b)!;
+  const first = neighbors(cat, id, w, { includeInferred: false }).filter(p => p.primary.tier === 'fact').slice(0, width); const seen = new Set([id, ...first.map(p => p.b)]); const out: Chain[] = [];
+  for (const p of first) { const B = cat.film.get(p.b)!; for (const q of neighbors(cat, B.id, w, { includeInferred: false }).filter(x => x.primary.tier === 'fact').slice(0, width)) { if (seen.has(q.b)) continue; const C = cat.film.get(q.b)!;
     out.push({ hops: [{ from: A, to: B, relation: p.primary }, { from: B, to: C, relation: q.primary }], score: (p.strength / 100) * (q.strength / 100) * 100, end: C }); } }
   const best = new Map<string, Chain>(); for (const c of out.sort((a, b) => b.score - a.score)) if (!best.has(c.end.id)) best.set(c.end.id, c);
   return [...best.values()].slice(0, opt.n ?? 10);
@@ -43,7 +45,7 @@ export function unexpected(cat: Catalog, id: string, w: Weights, n = 8): Surpris
   for (const r of relationsOf(cat, id, w, { includeInferred: false })) {
     if (!r.via || r.via.kind !== 'person' || !r.factual || seen.has(r.b)) continue; const B = cat.film.get(r.b)!;
     const sharedGenre = A.g.some(g => B.g.includes(g)); const gap = Math.abs(A.y - B.y);
-    if (!sharedGenre) { seen.add(B.id); out.push({ film: B, relation: r, contrast: `${A.g.map(g => cat.genreName.get(g)).join('/') || 'Drama'} against ${B.g.map(g => cat.genreName.get(g)).join('/') || 'Drama'}: no genre in common.` }); }
+    if (!sharedGenre && A.g.length && B.g.length) { seen.add(B.id); out.push({ film: B, relation: r, contrast: `${A.g.map(g => cat.genreName.get(g)).join('/') || 'Drama'} against ${B.g.map(g => cat.genreName.get(g)).join('/') || 'Drama'}: no genre in common.` }); }
     else if (gap >= 35) { seen.add(B.id); out.push({ film: B, relation: r, contrast: `${gap} years apart (${A.y} and ${B.y}).` }); }
   }
   return out.sort((a, b) => b.relation.strength - a.relation.strength).slice(0, n);
@@ -51,13 +53,16 @@ export function unexpected(cat: Catalog, id: string, w: Weights, n = 8): Surpris
 
 // ---- Six degrees of cinema: shortest paths over film - person / franchise / trilogy links
 export interface Step { kind: 'film' | 'via'; id: string; label: string; sub?: string; via?: 'person' | 'franchise' | 'trilogy'; role?: string }
-export function sixDegrees(cat: Catalog, from: string, to: string, opt: { max?: number; maxLen?: number; roles?: boolean } = {}): Step[][] {
+export type PathRole = 'dir' | 'wr' | 'co' | 'dp' | 'cast';
+export const DEFAULT_PATH_ROLES: PathRole[] = ['dir', 'wr', 'cast'];
+export function sixDegrees(cat: Catalog, from: string, to: string, opt: { max?: number; maxLen?: number; roles?: PathRole[] } = {}): Step[][] {
+  const roles = new Set<PathRole>(opt.roles ?? DEFAULT_PATH_ROLES);
   if (!cat.film.has(from) || !cat.film.has(to)) return []; if (from === to) return [[{ kind: 'film', id: from, label: cat.film.get(from)!.t }]];
   const maxPaths = opt.max ?? 5, maxLen = opt.maxLen ?? 12;
   // nodes: 'f:<id>' films, 'p:<id>' people, 'r:<id>' franchises/trilogies. Film adjacency is built lazily from the catalog indexes.
   const adj = (n: string): string[] => {
-    if (n[0] === 'f') { const f = cat.film.get(n.slice(2))!; return [...f.dir, ...f.wr, ...f.co, ...f.dp, ...f.cast.filter(c => c[1] === 0 || c[1] <= 8).map(c => c[0])].map(p => 'p:' + p).concat([...f.fr, ...(f.tr || [])].map(r => 'r:' + r)); }
-    if (n[0] === 'p') return (cat.credits.get(n.slice(2)) || []).filter(c => c.role !== 'pr' && (c.role !== 'cast' || c.billing === 0 || c.billing <= 8)).map(c => 'f:' + c.film.id);
+    if (n[0] === 'f') { const f = cat.film.get(n.slice(2))!; return [...(roles.has('dir') ? f.dir : []), ...(roles.has('wr') ? f.wr : []), ...(roles.has('co') ? f.co : []), ...(roles.has('dp') ? f.dp : []), ...(roles.has('cast') ? f.cast.filter(c => c[1] === 0 || c[1] <= 8).map(c => c[0]) : [])].map(p => 'p:' + p).concat([...f.fr, ...(f.tr || [])].map(r => 'r:' + r)); }
+    if (n[0] === 'p') return (cat.credits.get(n.slice(2)) || []).filter(c => c.role !== 'pr' && roles.has(c.role as PathRole) && (c.role !== 'cast' || c.billing === 0 || c.billing <= 8)).map(c => 'f:' + c.film.id);
     return (cat.franchise.get(n.slice(2))?.films || []).map(x => 'f:' + x);
   };
   const start = 'f:' + from, goal = 'f:' + to; const dist = new Map([[start, 0]]); const parents = new Map<string, string[]>(); let frontier = [start];
@@ -94,6 +99,6 @@ export function constellation(cat: Catalog, ids: string[], w: Weights) {
   const set = new Set(ids); const direct: { a: Film; b: Film; relation: Relation; strength: number }[] = []; const bridge = new Map<string, Bridge>();
   for (const id of ids) { const A = cat.film.get(id); if (!A) continue; for (const p of neighbors(cat, id, w, { includeInferred: false })) { const B = cat.film.get(p.b); if (!B) continue;
     if (set.has(p.b)) { if (id < p.b) direct.push({ a: A, b: B, relation: p.primary, strength: p.strength }); }
-    else if (p.primary.factual && p.strength >= 55) { const e = bridge.get(p.b) || { film: B, joins: [] }; e.joins.push({ film: A, relation: p.primary }); bridge.set(p.b, e); } } }
+    else if (p.primary.tier === 'fact' && p.strength >= 55) { const e = bridge.get(p.b) || { film: B, joins: [] }; e.joins.push({ film: A, relation: p.primary }); bridge.set(p.b, e); } } }
   return { direct: direct.sort((x, y) => y.strength - x.strength), bridges: [...bridge.values()].filter(b => b.joins.length >= 2).sort((a, b) => b.joins.length - a.joins.length || (b.film.pop || 0) - (a.film.pop || 0)).slice(0, 12) };
 }

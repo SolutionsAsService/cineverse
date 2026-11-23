@@ -9,7 +9,8 @@ import { ALL_CATEGORIES } from '@/lib/categories';
 export const useExplore = defineStore('explore', () => {
   const graph = ref<GraphModel>(markRaw(newGraph())); const version = ref(0); const lastDelta = ref<Delta | null>(null);
   const selected = ref<string | null>(null); const notice = ref(''); const pinned = reactive(new Set<string>());
-  const hidden = reactive(new Set<Category>()); const history = ref<string[]>([]);
+  const hidden = reactive(new Set<Category>()); const history = ref<string[]>([]); const route = ref<string[]>([]); const toast = ref(''); let toastTimer = 0;
+  const say2 = (m: string) => { toast.value = m; clearTimeout(toastTimer); toastTimer = window.setTimeout(() => { toast.value = ''; }, 3200); };
   const bump = (d?: Delta) => { version.value += 1; lastDelta.value = d || null; };
   const cat = () => useCatalog().cat!; const st = useSettings();
   const cats = (only?: Category[]) => (only ? new Set(only) : new Set(ALL_CATEGORIES.filter(c => !hidden.has(c))));
@@ -38,10 +39,11 @@ export const useExplore = defineStore('explore', () => {
     for (const nb of touching.get(id) || []) if (!pinned.has(nb) && (touching.get(nb)?.size || 0) <= 1) removeNode(g, nb); bump();
   }
   function remove(id: string) { removeNode(graph.value, id); if (selected.value === id) selected.value = null; bump(); }
-  function loadMap(films: string[], people: string[]) { graph.value = markRaw(newGraph()); pinned.clear(); for (const f of films) expandFilm(cat(), graph.value, f, st.weights, { limit: 0, nodeLimit: 9999 }); for (const p of people) expandPerson(cat(), graph.value, p, { limit: 0, nodeLimit: 9999 }); bump(); }
-  function addPath(films: string[], people: string[]) { for (const f of films) if (!graph.value.nodes.has(filmId(f))) expandFilm(cat(), graph.value, f, st.weights, { limit: 0, nodeLimit: 9999 }); for (const p of people) expandPerson(cat(), graph.value, p, { limit: 0, nodeLimit: 9999 }); bump(); }
+  function loadMap(films: string[], people: string[]) { graph.value = markRaw(newGraph()); pinned.clear(); for (const f of films) expandFilm(cat(), graph.value, f, st.weights, { limit: 0, nodeLimit: 9999, noCluster: true }); for (const p of people) expandPerson(cat(), graph.value, p, { limit: 0, nodeLimit: 9999, noCluster: true }); notice.value = graph.value.nodes.size > st.nodeLimit ? `This saved map has ${graph.value.nodes.size} nodes, above your limit of ${st.nodeLimit}; it is shown in full. New expansions will stop until you raise the limit.` : ''; bump(); }
+  function setRoute(ids: string[]) { route.value = ids; version.value += 1; }
+  function addPath(films: string[], people: string[]) { for (const f of films) if (!graph.value.nodes.has(filmId(f))) expandFilm(cat(), graph.value, f, st.weights, { limit: 0, nodeLimit: 9999, noCluster: true }); for (const p of people) expandPerson(cat(), graph.value, p, { limit: 0, nodeLimit: 9999, noCluster: true }); bump(); }
   function toggleCategory(c: Category) { if (hidden.has(c)) hidden.delete(c); else hidden.add(c); version.value += 1; }
   const snapshot = () => ({ films: [...graph.value.nodes.values()].filter(n => n.kind === 'film').map(n => n.ref), people: [...graph.value.nodes.values()].filter(n => n.kind === 'person').map(n => n.ref) });
-  function reset() { graph.value = markRaw(newGraph()); pinned.clear(); selected.value = null; history.value = []; notice.value = ''; bump(); }
-  return { graph, version, lastDelta, selected, notice, pinned, hidden, history, start, addFilm, addPerson, select, expand, collapse, remove, loadMap, addPath, toggleCategory, snapshot, reset, refOf };
+  function reset() { graph.value = markRaw(newGraph()); pinned.clear(); selected.value = null; history.value = []; notice.value = ''; route.value = []; bump(); }
+  return { graph, version, lastDelta, selected, notice, pinned, hidden, history, route, toast, say2, setRoute, start, addFilm, addPerson, select, expand, collapse, remove, loadMap, addPath, toggleCategory, snapshot, reset, refOf };
 });

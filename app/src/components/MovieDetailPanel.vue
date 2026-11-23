@@ -13,7 +13,7 @@ const emit = defineEmits<{ expand: [category?: Category]; focus: [id: string]; a
 const cat = useCatalog().cat!, lib = useLibrary(), st = useSettings();
 const f = computed(() => cat.film.get(props.id)!);
 const people = (ids: string[]) => ids.map(i => cat.person.get(i)).filter((p): p is NonNullable<typeof p> => !!p);
-const cast = computed(() => f.value.cast.map(([id, b]) => ({ p: cat.person.get(id)!, b })).filter(x => x.p));
+const cast = computed(() => { const l = f.value.cast.map(([id, b]) => ({ p: cat.person.get(id)!, b })).filter(x => x.p); return l.some(x => x.b > 0) ? l : l.sort((a, b) => a.p.n.localeCompare(b.p.n)); });
 const franchises = computed(() => f.value.fr.map(i => cat.franchise.get(i)).concat((f.value.tr || []).map(i => cat.franchise.get(i))).filter((x): x is NonNullable<typeof x> => !!x));
 const conns = computed(() => neighbors(cat, props.id, st.weights, { includeGenre: false }).slice(0, 14));
 const wiki = computed(() => (f.value.w ? `https://en.wikipedia.org/wiki/${encodeURIComponent(f.value.w.replace(/ /g, '_'))}` : ''));
@@ -49,11 +49,11 @@ const collectionPick = (e: Event) => { const v = (e.target as HTMLSelectElement)
       <template v-if="f.aw.length"><dt class="text-faint">Awards</dt><dd class="text-dim">{{ f.aw.slice(0, 4).join('; ') }}</dd></template>
       <template v-if="f.ba.length"><dt class="text-faint">Source</dt><dd class="text-dim">{{ f.ba.map(b => `${b.k} ${b.l}`).join('; ') }}</dd></template>
     </dl>
-    <section v-if="cast.length"><h3 class="eyebrow mb-2">Cast <span v-if="cast[0].b === 0" class="normal-case tracking-normal">(billing order not recorded)</span></h3>
+    <section v-if="cast.length"><h3 class="eyebrow mb-2">Cast <span v-if="cast[0].b === 0" class="normal-case tracking-normal">(billing order not recorded: listed alphabetically, up to 8 names)</span></h3>
       <ul class="flex flex-wrap gap-x-4 gap-y-1 text-sm"><li v-for="c in cast" :key="c.p.id"><RouterLink :to="`/person/${c.p.id}`" class="hover:text-gold" :class="c.b > 0 && c.b <= 2 ? 'text-text font-semibold' : 'text-dim'">{{ c.p.n }}</RouterLink></li></ul></section>
     <section v-if="franchises.length"><h3 class="eyebrow mb-2">Franchise information</h3><div class="flex flex-wrap gap-2"><RouterLink v-for="fr in franchises" :key="fr.id" :to="`/franchise/${fr.id}`" class="chip text-text"><i :style="{ background: fr.k === 'trilogy' ? 'var(--color-trilogy)' : 'var(--color-franchise)' }" />{{ fr.n }} · {{ fr.films.length }} films</RouterLink></div></section>
     <section v-if="showConnections"><h3 class="eyebrow mb-2">Connections ({{ conns.length }} strongest)</h3>
-      <ul class="grid grid-cols-1 gap-1"><li v-for="c in conns" :key="c.b" class="border-b border-line/60 py-2 text-sm"><div class="flex items-start justify-between gap-2"><button class="text-left font-semibold hover:text-gold min-h-11 py-1" @click="emit('focus', c.b)">{{ cat.film.get(c.b)?.t }} <span class="font-normal text-faint">{{ cat.film.get(c.b)?.y }}</span></button><span class="text-xs text-faint shrink-0">{{ Math.round(c.strength) }}</span></div><RelationBadge :rel="c.primary" explain /><p v-if="c.all.length > 1" class="text-xs text-faint mt-1">+ {{ c.all.length - 1 }} more link{{ c.all.length > 2 ? 's' : '' }}</p></li></ul></section>
+      <ul class="grid grid-cols-1 gap-1"><li v-for="c in conns" :key="c.b" class="border-b border-line/60 py-2 text-sm"><div class="flex items-start justify-between gap-2"><button class="text-left font-semibold hover:text-gold min-h-11 py-1" @click="emit('focus', c.b)">{{ cat.film.get(c.b)?.t }} <span class="font-normal text-faint">{{ cat.film.get(c.b)?.y }}</span></button><span class="text-xs text-faint shrink-0" title="Connection strength, 0 to 100, from the weights in the map sidebar">strength {{ Math.round(c.strength) }}</span></div><RelationBadge :rel="c.primary" explain /><p v-if="c.all.length > 1" class="text-xs text-faint mt-1">+ {{ c.all.length - 1 }} more link{{ c.all.length > 2 ? 's' : '' }}</p></li></ul></section>
     <p class="text-xs text-faint">Roles: {{ Object.values(ROLE_LABEL).slice(0, 3).join(', ') }} and more are linked above. Wikidata id: {{ f.id }}.</p>
   </article>
 </template>

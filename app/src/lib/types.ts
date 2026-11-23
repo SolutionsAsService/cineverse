@@ -12,7 +12,7 @@ export interface Film {
 }
 export interface Person { id: string; n: string; de?: string; b?: number; d?: number; sx?: string; w?: string; ex?: string }
 export interface Genre { id: string; n: string }
-export interface Franchise { id: string; n: string; k: 'series' | 'universe' | 'trilogy'; ty: string[]; films: string[]; src: string; kind?: string; note?: string }
+export interface Franchise { id: string; n: string; k: 'series' | 'universe' | 'trilogy'; ty: string[]; films: string[]; src: string; kind?: string; note?: string; partial?: boolean }
 export interface DataMeta { generated: string; films: number; people: number; franchises: number; trilogies: number; sources: { name: string; license: string; url: string; use: string }[]; selection: string; noPosters: string }
 export interface Dataset { meta: DataMeta; genres: Genre[]; films: Film[]; people: Person[]; franchises: Franchise[]; trilogies: Franchise[] }
 

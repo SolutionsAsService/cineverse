@@ -7,6 +7,7 @@ export interface Catalog {
   credits: Map<string, Credit[]>;                 // person id -> credits
   byGenre: Map<string, Film[]>; byCompany: Map<string, Film[]>; bySource: Map<string, Film[]>; bySubject: Map<string, Film[]>;
   filmsOfFranchise: (id: string) => Film[];
+  trilogySets: Franchise[]; seriesSets: Franchise[];
   primaryGenre: (f: Film) => string;
   yearRange: [number, number];
 }
@@ -29,6 +30,7 @@ export function buildCatalog(data: Dataset): Catalog {
   return {
     data, film, person, franchise, genreName: new Map(data.genres.map(g => [g.id, g.n])), credits, byGenre, byCompany, bySource, bySubject,
     filmsOfFranchise: id => (franchise.get(id)?.films || []).map(x => film.get(x)).filter((x): x is Film => !!x),
+    trilogySets: [...data.franchises.filter(f => f.k === 'trilogy'), ...data.trilogies], seriesSets: data.franchises.filter(f => f.k !== 'trilogy'),
     primaryGenre: f => [...f.g].sort((a, b) => order.indexOf(a) - order.indexOf(b))[0] || 'drama',
     yearRange: [Math.min(...years), Math.max(...years)],
   };

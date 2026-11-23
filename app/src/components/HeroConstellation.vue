@@ -6,7 +6,7 @@ import { useCatalog } from '@/stores/catalog';
 import { useSettings } from '@/stores/settings';
 import { neighbors, type PairRelation } from '@/lib/relations';
 import { titleCard } from '@/lib/poster';
-import { CATEGORY_COLOR, CATEGORY_LABEL, type Category } from '@/lib/types';
+import { CATEGORY_COLOR, CATEGORY_LABEL } from '@/lib/types';
 
 // The landing figure is real: the centre film and its strongest factual neighbours come from the same relationship engine as the map.
 const cat = useCatalog().cat!, st = useSettings(), router = useRouter();
@@ -15,11 +15,9 @@ const FAVOURITES = ['Pulp Fiction', 'Blade Runner', 'The Godfather', 'Inception'
 const pool = FAVOURITES.map(t => cat.data.films.find(f => f.t === t)).filter((f): f is NonNullable<typeof f> => !!f);
 const idx = ref(0); const centre = computed(() => pool[idx.value % pool.length] || cat.data.films[0]);
 const shuffle = () => { idx.value += 1; active.value = 0; };
-const list = computed<PairRelation[]>(() => {
-  const all = neighbors(cat, centre.value.id, st.weights, { includeInferred: false }).filter(p => p.primary.factual); const per = new Map<Category, number>(); const out: PairRelation[] = [];
-  for (const p of all) { const c = p.primary.category; if ((per.get(c) || 0) >= 2) continue; per.set(c, (per.get(c) || 0) + 1); out.push(p); if (out.length >= (tall.value ? 6 : 8)) break; }
-  return out;
-});
+// An honest sample: the strongest factual links, no per-category cap. Actor links count only where Wikidata records the billing (a lead in both films); studio and producer links are too weak to headline.
+const pool_ = computed(() => neighbors(cat, centre.value.id, st.weights, { includeInferred: false }).filter(p => p.primary.tier === 'fact' && p.primary.type !== 'SAME_STUDIO' && p.primary.type !== 'SAME_PRODUCER' && (p.primary.type !== 'SHARED_ACTOR' || p.primary.why.includes('a lead'))));
+const list = computed<PairRelation[]>(() => pool_.value.slice(0, tall.value ? 6 : 8));
 const active = ref(0);
 const W = computed(() => (tall.value ? 360 : 700)), H = computed(() => (tall.value ? 270 : 390));
 const nodes = computed(() => list.value.map((p, i) => { const n = list.value.length; const a = -Math.PI / 2 + (i / n) * Math.PI * 2 + (n % 2 ? 0 : Math.PI / n); const rx = tall.value ? 118 : 255, ry = tall.value ? 94 : 150; return { p, x: W.value / 2 + Math.cos(a) * rx, y: H.value / 2 + Math.sin(a) * ry, film: cat.film.get(p.b)! }; }));
@@ -28,8 +26,8 @@ const short = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…
 const genreCount = cat.data.genres.length;
 const topics = computed(() => [
   { to: '/explore', name: 'Movie map', fig: `${cat.data.films.length.toLocaleString()} films`, glyph: 'map' },
-  { to: '/franchises', name: 'Franchises', fig: `${cat.data.franchises.length} series`, glyph: 'fr' },
-  { to: '/trilogies', name: 'Trilogies', fig: `${cat.data.franchises.filter(f => f.k === 'trilogy').length + cat.data.trilogies.length} sets`, glyph: 'tri' },
+  { to: '/franchises', name: 'Franchises', fig: `${cat.seriesSets.length} series`, glyph: 'fr' },
+  { to: '/trilogies', name: 'Trilogies', fig: `${cat.trilogySets.length} trilogies`, glyph: 'tri' },
   { to: '/people', name: 'Directors and actors', fig: `${cat.data.people.length.toLocaleString()} people`, glyph: 'person' },
   { to: '/timeline', name: 'Timeline', fig: `${cat.yearRange[0]}–${cat.yearRange[1]}`, glyph: 'time' },
   { to: `/genre/${cat.data.genres[0].id}`, name: 'Genres', fig: `${genreCount} genres`, glyph: 'genre' },
@@ -45,7 +43,7 @@ const used = computed(() => [...new Set(list.value.map(p => p.primary.category))
     <div class="hero-map">
       <svg :viewBox="`0 0 ${W} ${H}`" role="group" :aria-label="`${centre.t} and its strongest factual connections`" class="w-full h-auto block">
         <g v-for="(n, i) in nodes" :key="'e' + n.p.b">
-          <line :x1="W / 2" :y1="H / 2" :x2="n.x" :y2="n.y" :stroke="CATEGORY_COLOR[n.p.primary.category]" :stroke-width="active === i ? 3.4 : 1.8" :stroke-opacity="active === i ? 1 : .6" />
+          <line :x1="W / 2" :y1="H / 2" :x2="n.x" :y2="n.y" :stroke="CATEGORY_COLOR[n.p.primary.category]" :stroke-width="(active === i ? 1.8 : 1) * (1 + n.p.strength / 40)" :stroke-opacity="active === i ? 1 : .6" />
         </g>
         <g :transform="`translate(${W / 2 - (tall ? 27 : 38)},${H / 2 - (tall ? 40 : 57)})`">
           <rect x="-4" y="-4" :width="(tall ? 54 : 76) + 8" :height="(tall ? 80 : 114) + 8" rx="3" fill="var(--color-ink)" stroke="var(--color-gold)" stroke-width="2.5" />
@@ -57,7 +55,7 @@ const used = computed(() => [...new Set(list.value.map(p => p.primary.category))
           <text :x="n.x" :y="n.y + 13" text-anchor="middle" font-size="12.5" fill="var(--color-dim)">{{ tall ? n.film.y : `${n.film.y} · ${n.p.primary.via?.label ? short(n.p.primary.via.label, 22) : n.p.primary.type.toLowerCase().replace(/_/g, ' ')}` }}</text>
         </g>
       </svg>
-      <figcaption class="hero-why" aria-live="polite"><b>{{ centre.t }}</b> <span class="text-faint">({{ centre.y }})</span> · {{ explain }}</figcaption>
+      <figcaption class="hero-why" aria-live="polite"><b>{{ centre.t }}</b> ↔ <b>{{ nodes[active]?.film.t }}</b> · {{ explain }} <span class="text-faint">Strongest {{ list.length }} of {{ pool_.length }} factual links; line thickness is strength.</span></figcaption>
       <div class="hero-key"><span v-for="c in used" :key="c" class="chip"><i :style="{ background: CATEGORY_COLOR[c] }" />{{ CATEGORY_LABEL[c] }}</span><button class="btn ghost !min-h-[44px]" @click="shuffle">Another film</button></div>
     </div>
     <nav class="hero-topics" aria-label="Everything on the site">

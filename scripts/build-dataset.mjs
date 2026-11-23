@@ -16,7 +16,8 @@ const links = new Map((await R('films')).map(f => [f.id, f.links])); for (const 
 const films = new Map();
 for (const [fid, rows] of baseRows) {
   const label = v(rows[0], 'label'); if (!label || isQ(label)) continue;
-  const dates = rows.map(r => v(r, 'date')).filter(Boolean).sort(); const year = dates[0] ? Number(dates[0].slice(0, 4)) : null; if (!year || year < 1890 || year > 2027) continue;
+  const today = new Date().toISOString().slice(0, 10); const dates = rows.map(r => v(r, 'date')).filter(Boolean).sort(); if (dates[0] && dates[0].slice(0, 10) > today) continue;   // announced, not released: not a film in the atlas yet
+  const year = dates[0] ? Number(dates[0].slice(0, 4)) : null; if (!year || year < 1890 || year > 2027) continue;
   const rts = rows.map(r => Number(v(r, 'runtime'))).filter(n => n > 20 && n < 600).sort((a, b) => a - b);
   const ot = uniq(rows.map(v2 => v(v2, 'title')).filter(Boolean)).find(t => t.toLowerCase() !== label.toLowerCase());
   films.set(fid, { id: fid, t: label, ...(ot ? { ot } : {}), y: year, ...(rts.length ? { rt: rts[Math.floor(rts.length / 2)] } : {}), de: v(rows[0], 'desc') || '', w: v(rows.find(r => v(r, 'wiki')) || {}, 'wiki') || undefined,
@@ -71,7 +72,7 @@ const franchises = new Map();
 for (const [fid, rows] of by(await R('series'))) { const f = films.get(fid); if (!f) continue; for (const r of rows) { const sid = id(v(r, 'x')); const meta = seriesTypes.get(sid); const name = meta?.name || v(r, 'xLabel'); if (!meta || !name || isQ(name) || FR_BAD.test(name)) continue;
   if (!meta.types.some(t => FR_OK.test(t))) continue; if (!franchises.has(sid)) franchises.set(sid, { id: sid, n: name, ty: meta.types.filter(t => FR_OK.test(t)), films: [] }); franchises.get(sid).films.push(fid); f.fr.push(sid); } }
 for (const f of franchises.values()) { f.films = uniq(f.films).sort((a, b) => films.get(a).y - films.get(b).y || films.get(a).t.localeCompare(films.get(b).t));
-  const isTri = f.ty.some(t => /trilogy/i.test(t)); f.k = isTri ? 'trilogy' : f.ty.some(t => /universe/i.test(t)) ? 'universe' : 'series'; f.src = 'wikidata'; }
+  const isTri = f.ty.some(t => /trilogy/i.test(t)); f.k = isTri && f.films.length <= 3 ? 'trilogy' : f.ty.some(t => /universe/i.test(t)) ? 'universe' : 'series'; if (isTri && f.films.length === 2) f.partial = true; f.src = 'wikidata'; }
 for (const [fid, fo] of films) fo.fr = uniq(fo.fr).filter(s => (franchises.get(s)?.films.length || 0) >= 2);
 for (const [sid, f] of [...franchises]) if (f.films.length < 2) franchises.delete(sid);
 
@@ -86,12 +87,32 @@ for (const t of editorial.trilogies) { const members = t.titles.map(resolveTitle
   const ids = new Set(found.map(f => f.id));
   // when Wikidata already has this trilogy (same films), annotate it with the brief's classification instead of duplicating it
   const twin = [...franchises.values()].find(fr => fr.k === 'trilogy' && fr.films.length >= found.length && [...ids].every(i => fr.films.includes(i)) && fr.films.length <= found.length + 2);
+  const wide = [...franchises.values()].find(fr => fr.k === 'series' && fr.ty.some(t => /trilogy/i.test(t)) && [...ids].every(i => fr.films.includes(i)));   // a Wikidata trilogy item that also lists spin-offs: keep it as a series, give the three films their own trilogy record
   if (twin) { twin.kind = t.kind; twin.note = t.note; twin.src = 'wikidata + editorial'; console.log('trilogy annotated:', t.name, '->', twin.n); continue; }
+  if (wide) { wide.note = (wide.note || '') + ' Includes spin-offs; the trilogy itself is listed separately.'; }
   trilogies.push({ id: tid, n: t.name, k: 'trilogy', ty: ['editorial trilogy'], kind: t.kind, films: found.sort((a, b) => a.y - b.y).map(f => f.id), note: t.note, src: 'editorial' }); for (const f of found) f.tr = [...(f.tr || []), tid]; }
 
 // ---- Wikipedia lead paragraphs (CC BY-SA 4.0): first 3 sentences, with the article title kept for attribution
 const extracts = (await R('extracts')); const ex = Array.isArray(extracts) ? {} : extracts;
-const lead = t => { if (!t) return ''; const s = t.replace(/\s+/g, ' ').trim(); const m = s.match(/^(.*?[.!?])(\s+[A-Z].*?[.!?]){0,2}/); return (m ? m[0] : s).slice(0, 560); };
+const IPA = /[ˈˌəɪʊɛɔæðθʃʒŋːɑɒʌɜɐ]|pronounced|\/[^/]{2,}\/|\b[A-Z]{3,}(?:-[A-Za-z]+)+/;
+function stripPronunciation(text) {   // drops IPA or respelling segments inside parentheses (nested parentheses allowed), keeps dates and other parenthetical facts
+  let out = '', i = 0;
+  while (i < text.length) {
+    if (text[i] !== '(') { out += text[i++]; continue; }
+    let depth = 0, j = i; for (; j < text.length; j += 1) { if (text[j] === '(') depth += 1; else if (text[j] === ')') { depth -= 1; if (depth === 0) break; } }
+    const inner = text.slice(i + 1, j); const parts = []; let d = 0, cur = '';
+    for (const ch of inner) { if (ch === '(' || ch === '[') d += 1; if (ch === ')' || ch === ']') d -= 1; if (ch === ';' && d === 0) { parts.push(cur); cur = ''; } else cur += ch; }
+    parts.push(cur); const keep = parts.map(x => x.trim()).filter(x => x && !IPA.test(x));
+    if (!keep.length) out = out.replace(/\s+$/, ''); else out += '(' + keep.join('; ') + ')';
+    i = j + 1;
+  }
+  return out;
+}
+const ABBR = /(?:\b(?:Mr|Mrs|Ms|Dr|St|Jr|Sr|Mt|vs|No|Inc|Ltd|Co|Corp|Prof)|\b[A-Z])\.$/;
+const lead = t => { if (!t) return ''; let s = t.replace(/\s+/g, ' ').trim();
+  s = stripPronunciation(s);   // pronunciation guides are not part of the lead we reuse
+  const out = []; let rest = s; while (rest && out.length < 3) { const re = /[.!?]["')\]]?\s+(?=[A-Z0-9"“])/g; let m, cut = -1; while ((m = re.exec(rest))) { const head = rest.slice(0, m.index + 1); if (ABBR.test(head)) continue; cut = m.index + m[0].trimEnd().length; break; } if (cut < 0) { out.push(rest); rest = ''; } else { out.push(rest.slice(0, cut).trim()); rest = rest.slice(cut).trim(); } }
+  let r = out.join(' '); if (r.length > 600) { const k = r.lastIndexOf('. ', 600); r = k > 200 ? r.slice(0, k + 1) : r.slice(0, 599).trimEnd() + '…'; } return r; };
 for (const f of films.values()) if (f.w && ex[f.w]) f.ex = lead(ex[f.w]);
 for (const p of people.values()) if (p.w && ex[p.w]) p.ex = lead(ex[p.w]);
 
@@ -102,7 +123,7 @@ const filmList = [...films.values()].sort((a, b) => b.cast.length + b.dir.length
 for (const f of filmList) { const n = links.get(f.id); if (n) f.pop = n; }
 const dataset = { meta: { generated: new Date().toISOString().slice(0, 10), films: filmList.length, people: peopleOut.length, franchises: franchises.size, trilogies: trilogies.length + [...franchises.values()].filter(f => f.k === 'trilogy').length,
     sources: [{ name: 'Wikidata', license: 'CC0 1.0', url: 'https://www.wikidata.org', use: 'films, people, credits, genres, franchises, sequels, sources and awards' }, { name: 'Wikipedia (English)', license: 'CC BY-SA 4.0', url: 'https://en.wikipedia.org', use: 'lead paragraphs for synopses and biographies; each carries its article title' }, { name: 'Editorial', license: 'this project', url: 'docs/DATA.md', use: 'the trilogy list from the product brief, resolved to dataset titles' }],
-    selection: 'Instance of film (or a subclass) with at least 45 Wikidata sitelinks, plus members of the same franchise with at least 15, plus the titles named in the product brief.', noPosters: 'Posters are not redistributed: the app draws a generated title card from each film’s data.' },
+    selection: 'Instance of film (or a subclass) with at least 45 Wikidata sitelinks, plus members of the same franchise with at least 15, plus the titles named in the product brief.', noPosters: 'Posters are not redistributed: the app draws a generated title card from each film’s data.', alterations: 'Wikipedia lead paragraphs are shortened to their first sentences and pronunciation guides are removed.', released: 'Films whose first release date is after the snapshot date are excluded.' },
   genres: COARSE.map(([gid, name]) => ({ id: gid, n: name })), films: filmList, people: peopleOut, franchises: [...franchises.values()], trilogies };
 await mkdir(OUT, { recursive: true }); await writeFile(OUT + 'cineverse.json', JSON.stringify(dataset));
 const kb = Buffer.byteLength(JSON.stringify(dataset)) / 1024;

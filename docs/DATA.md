@@ -8,11 +8,11 @@ Everything shown comes from a dated snapshot, `app/public/data/cineverse.json`, 
 
 ## Selection rule (the first playable catalog)
 * Instance of film or a subclass, with at least **45 Wikidata sitelinks** (a proxy for being documented in many Wikipedias);
-* plus, for each of 30 countries outside the US and UK, that country's most widely documented films (at least 22 sitelinks, up to 36 per country), so the catalog is not only English-language cinema;
+* plus, for each of 30 countries outside the US and UK (Japan, France, Italy, Germany, South Korea, India, China, Hong Kong, Sweden, Denmark, Spain, Mexico, Brazil, Iran, Russia, the Soviet Union, Poland, Argentina, Taiwan, Thailand, Turkey, Egypt, the Netherlands, Belgium, Austria, Finland, Norway, Greece, Nigeria, Czechoslovakia), that country's most widely documented films (at least 22 sitelinks, up to 36 per country; 827 candidates), so the catalog is not only English-language cinema;
 * plus members of a film series already present, with at least 15 sitelinks, so franchises are whole;
 * plus the titles named in the product brief (`scripts/must-include.txt`).
 
-Popularity by sitelinks is a bias, not a quality judgement: it favours widely translated and older canonical films, and under-represents recent and local cinema. The snapshot is a curated atlas, not a census of film.
+Films whose first release date is after the snapshot date are excluded (announced films are not in the atlas yet). Popularity by sitelinks is a bias, not a quality judgement: it favours widely translated and older canonical films, and under-represents recent and local cinema. The snapshot is a curated atlas, not a census of film.
 
 ## Quality checks (run by `npm test`)
 No broken sequel, person or franchise references; no two films with the same title and year (language versions and same-title shorts are qualified, e.g. “Dracula (Spanish-language version)”); every title the brief names is present; the brief's eleven trilogies are present with their kind; provenance and rights fields exist.

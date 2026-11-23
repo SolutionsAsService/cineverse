@@ -37,7 +37,7 @@ function key(e: KeyboardEvent) {
         <ul id="search-results" role="listbox" class="overflow-auto">
           <li v-for="(h, i) in hits" :key="h.kind + h.id" role="option" :aria-selected="i === active">
             <button class="w-full min-h-12 px-4 py-2 flex items-center gap-3 text-left border-b border-line/50" :class="i === active ? 'bg-panel2' : ''" @click="go(h, $event)" @mousemove="active = i">
-              <span class="chip shrink-0">{{ KIND[h.kind] }}</span><span class="min-w-0"><b class="block truncate">{{ h.title }}</b><span class="block text-sm text-faint truncate">{{ h.sub }}</span></span>
+              <span class="chip shrink-0">{{ KIND[h.kind] }}</span><span class="min-w-0 flex-1"><b class="block truncate">{{ h.title }}</b><span class="block text-sm text-faint truncate">{{ h.sub }}</span></span><span class="text-xs text-faint shrink-0">{{ h.kind === 'film' ? 'Opens on the map' : 'Opens its page' }}</span>
             </button>
           </li>
           <li v-if="q.trim() && !hits.length" class="p-4 text-dim">No match for “{{ q }}”. Try fewer letters, or search a director.</li>
@@ -46,7 +46,7 @@ function key(e: KeyboardEvent) {
           <div v-if="lib.s.recent.length"><p class="eyebrow mb-2">Recent</p><div class="flex flex-wrap gap-2"><button v-for="r in lib.s.recent" :key="r" class="chip" @click="q = r">{{ r }}</button></div></div>
           <div><p class="eyebrow mb-2">Popular</p><div class="flex flex-wrap gap-2"><button v-for="f in popular" :key="f.id" class="chip" @click="q = f.t">{{ f.t }}</button></div></div>
         </div>
-        <p class="px-4 py-2 text-xs text-faint border-t border-line">Enter opens the film on the map · Shift+Enter opens its page · Esc closes</p>
+        <p class="px-4 py-2 text-xs text-faint border-t border-line hidden md:block">↑↓ choose · Enter opens the highlighted result · Shift+Enter opens a film’s page instead of the map · Esc closes</p>
       </div>
     </div>
   </Teleport>

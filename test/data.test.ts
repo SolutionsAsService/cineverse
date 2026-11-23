@@ -31,3 +31,12 @@ test('provenance and rights are stated', () => {
   assert.ok(data.meta.sources.some(s => s.name === 'Wikidata' && /CC0/.test(s.license))); assert.ok(data.meta.sources.some(s => /CC BY-SA/.test(s.license))); assert.match(data.meta.noPosters, /not redistributed/i);
   const raw = readFileSync(new URL('../app/src/lib/poster.ts', import.meta.url), 'utf8'); assert.ok(!/https?:\/\/.*\.(jpg|png)/i.test(raw), 'no remote poster URLs');
 });
+
+test('a trilogy has at most three films, and no film is dated in the future', () => {
+  for (const t of [...data.franchises.filter(f => f.k === 'trilogy'), ...data.trilogies]) assert.ok(t.films.length <= 3, `${t.n} has ${t.films.length} films`);
+  const year = new Date().getFullYear(); for (const f of data.films) assert.ok(f.y <= year, `${f.t} (${f.y}) is not released yet`);
+});
+test('Wikipedia excerpts are whole sentences with no pronunciation guides', () => {
+  for (const f of data.films) if (f.ex) { assert.ok(!/[ˈˌə]/.test(f.ex), `${f.t}: pronunciation guide left in`); assert.match(f.ex, /[.!?…”")]$/, `${f.t}: excerpt does not end on a sentence`); }
+  for (const p of data.people) if (p.ex) assert.ok(!/[ˈˌə]/.test(p.ex), `${p.n}: pronunciation guide left in`);
+});

@@ -2,11 +2,11 @@
 import type { Catalog } from './catalog';
 import type { Category, Film } from './types';
 import { CATEGORY_LABEL } from './types';
-import { neighbors, relationsOf, type PairRelation, type Weights } from './relations';
+import { neighbors, relationsOf, type PairRelation, type Tier, type Weights } from './relations';
 
 export type NodeKind = 'film' | 'person' | 'genre' | 'franchise' | 'trilogy' | 'cluster';
 export interface GNode { id: string; kind: NodeKind; label: string; ref: string; year?: number; weight: number; genre?: string; category?: Category; hidden?: number }
-export interface GEdge { id: string; source: string; target: string; type: string; label: string; category: Category; strength: number; factual: boolean; why: string; more: { label: string; why: string; strength: number; factual: boolean }[] }
+export interface GEdge { id: string; source: string; target: string; type: string; label: string; category: Category; strength: number; factual: boolean; tier: Tier; why: string; more: { label: string; why: string; strength: number; factual: boolean }[] }
 export interface GraphModel { nodes: Map<string, GNode>; edges: Map<string, GEdge> }
 export interface Delta { nodes: GNode[]; edges: GEdge[]; truncated: boolean }
 
@@ -23,11 +23,11 @@ const edgeId = (a: string, b: string, t: string) => (a < b ? `${a}|${b}|${t}` : 
 function pairEdge(p: PairRelation, a: string, b: string, categories?: Set<Category>): GEdge {
   const rels = categories ? p.all.filter(r => categories.has(r.category)) : p.all; const r = rels[0] || p.primary;
   const stored = r.rev ? { source: b, target: a } : { source: a, target: b };
-  return { id: edgeId(a, b, r.type), ...stored, type: r.type, label: r.via?.label || '', category: r.category, strength: p.strength, factual: r.factual, why: r.why, more: p.all.slice(0, 6).map(x => ({ label: x.type, why: x.why, strength: x.strength, factual: x.factual })) };
+  return { id: edgeId(a, b, r.type), ...stored, type: r.type, label: r.via?.label || '', category: r.category, strength: p.strength, factual: r.factual, tier: r.tier, why: r.why, more: p.all.slice(0, 6).map(x => ({ label: x.type, why: x.why, strength: x.strength, factual: x.factual })) };
 }
 
 /** Add the strongest neighbours of a film. Large groups are folded into a "+N more" node that expands on demand. */
-export function expandFilm(cat: Catalog, g: GraphModel, id: string, w: Weights, opt: { limit: number; categories?: Set<Category>; nodeLimit: number; includeGenre?: boolean }): Delta {
+export function expandFilm(cat: Catalog, g: GraphModel, id: string, w: Weights, opt: { limit: number; categories?: Set<Category>; nodeLimit: number; includeGenre?: boolean; noCluster?: boolean }): Delta {
   const delta: Delta = { nodes: [], edges: [], truncated: false };
   const f = cat.film.get(id); if (!f) return delta;
   const addNode = (n: GNode) => { if (!g.nodes.has(n.id)) { g.nodes.set(n.id, n); delta.nodes.push(n); } };
@@ -41,18 +41,18 @@ export function expandFilm(cat: Catalog, g: GraphModel, id: string, w: Weights, 
   const take = Math.min(opt.limit, room);
   for (const p of fresh.slice(0, take)) { const B = cat.film.get(p.b); if (!B) continue; addNode(filmNode(cat, B)); addEdge(pairEdge(p, filmId(id), filmId(p.b), opt.categories)); }
   const left = fresh.length - take;
-  if (left > 0) {
+  if (left > 0 && !opt.noCluster) {
     delta.truncated = take < opt.limit && room < opt.limit;
     const byCat = new Map<Category, number>(); for (const p of fresh.slice(take)) byCat.set(p.primary.category, (byCat.get(p.primary.category) || 0) + 1);
     const [topCat, n] = [...byCat.entries()].sort((a, b) => b[1] - a[1])[0];
-    const cid = 'c:' + id + ':' + topCat; if (!delta.truncated && !g.nodes.has(cid)) { addNode({ id: cid, kind: 'cluster', label: `+${left} more`, ref: id, weight: .3, category: topCat, hidden: left }); addEdge({ id: cid + '|e', source: filmId(id), target: cid, type: 'MORE', label: '', category: topCat, strength: 30, factual: true, why: `${left} more connected films (mostly ${CATEGORY_LABEL[topCat].toLowerCase()}). Click to expand.`, more: [] }); }
+    const cid = 'c:' + id + ':' + topCat; if (!delta.truncated && !g.nodes.has(cid)) { addNode({ id: cid, kind: 'cluster', label: `+${left} more`, ref: id, weight: .3, category: topCat, hidden: left }); addEdge({ id: cid + '|e', source: filmId(id), target: cid, type: 'MORE', label: '', category: topCat, strength: 30, factual: true, tier: 'fact', why: `${left} more connected films (mostly ${CATEGORY_LABEL[topCat].toLowerCase()}). Click to expand.`, more: [] }); }
   }
   void relationsOf;
   return delta;
 }
 
 /** A person node and their films. */
-export function expandPerson(cat: Catalog, g: GraphModel, id: string, opt: { limit: number; nodeLimit: number }): Delta {
+export function expandPerson(cat: Catalog, g: GraphModel, id: string, opt: { limit: number; nodeLimit: number; noCluster?: boolean }): Delta {
   const delta: Delta = { nodes: [], edges: [], truncated: false };
   const pn = personNode(cat, id); if (!g.nodes.has(pn.id)) { g.nodes.set(pn.id, pn); delta.nodes.push(pn); }
   const credits = [...(cat.credits.get(id) || [])].sort((a, b) => (b.film.pop || 0) - (a.film.pop || 0) || (a.billing || 99) - (b.billing || 99));
@@ -61,7 +61,7 @@ export function expandPerson(cat: Catalog, g: GraphModel, id: string, opt: { lim
     const nid = filmId(c.film.id); const room = opt.nodeLimit - g.nodes.size;
     if (!g.nodes.has(nid)) { if (added >= opt.limit || room <= 0) { delta.truncated = room <= 0; continue; } const n = filmNode(cat, c.film); g.nodes.set(n.id, n); delta.nodes.push(n); added += 1; }
     const category: Category = c.role === 'dir' ? 'director' : c.role === 'cast' ? 'cast' : 'crew'; const eid = edgeId(pn.id, nid, c.role);
-    if (!g.edges.has(eid)) { const e: GEdge = { id: eid, source: pn.id, target: nid, type: c.role.toUpperCase(), label: c.role, category, strength: c.role === 'dir' ? 85 : c.role === 'cast' ? (c.billing > 0 && c.billing <= 2 ? 80 : 60) : 60, factual: true, why: `${pn.label}: ${({ dir: 'director', wr: 'screenwriter', co: 'composer', dp: 'cinematographer', pr: 'producer', cast: 'cast member' } as const)[c.role]} of “${c.film.t}” (${c.film.y}).`, more: [] }; g.edges.set(eid, e); delta.edges.push(e); }
+    if (!g.edges.has(eid)) { const e: GEdge = { id: eid, source: pn.id, target: nid, type: c.role.toUpperCase(), label: c.role, category, strength: c.role === 'dir' ? 85 : c.role === 'cast' ? (c.billing > 0 && c.billing <= 2 ? 80 : 60) : 60, factual: true, tier: 'fact', why: `${pn.label}: ${({ dir: 'director', wr: 'screenwriter', co: 'composer', dp: 'cinematographer', pr: 'producer', cast: 'cast member' } as const)[c.role]} of “${c.film.t}” (${c.film.y}).`, more: [] }; g.edges.set(eid, e); delta.edges.push(e); }
   }
   return delta;
 }
@@ -69,7 +69,7 @@ export function expandPerson(cat: Catalog, g: GraphModel, id: string, opt: { lim
 /** Hub nodes (director, top-billed actors, genre, franchise) around one film, for the people-and-genres view. */
 export function expandHubs(cat: Catalog, g: GraphModel, id: string): Delta {
   const delta: Delta = { nodes: [], edges: [], truncated: false }; const f = cat.film.get(id); if (!f) return delta;
-  const add = (n: GNode, cat2: Category, type: string, why: string) => { if (!g.nodes.has(n.id)) { g.nodes.set(n.id, n); delta.nodes.push(n); } const eid = edgeId(filmId(id), n.id, type); if (!g.edges.has(eid)) { const e: GEdge = { id: eid, source: n.id, target: filmId(id), type, label: n.label, category: cat2, strength: 70, factual: true, why, more: [] }; g.edges.set(eid, e); delta.edges.push(e); } };
+  const add = (n: GNode, cat2: Category, type: string, why: string) => { if (!g.nodes.has(n.id)) { g.nodes.set(n.id, n); delta.nodes.push(n); } const eid = edgeId(filmId(id), n.id, type); if (!g.edges.has(eid)) { const e: GEdge = { id: eid, source: n.id, target: filmId(id), type, label: n.label, category: cat2, strength: 70, factual: true, tier: 'fact', why, more: [] }; g.edges.set(eid, e); delta.edges.push(e); } };
   for (const p of f.dir) add(personNode(cat, p), 'director', 'DIR', `${cat.person.get(p)?.n} directed “${f.t}”.`);
   for (const [p, b] of f.cast.filter(c => c[1] > 0 && c[1] <= 3).slice(0, 3)) add(personNode(cat, p), 'cast', 'CAST', `${cat.person.get(p)?.n} is billed ${b} in “${f.t}”.`);
   for (const frId of f.fr.slice(0, 2)) { const fr = cat.franchise.get(frId); if (fr) add({ id: 'fr:' + fr.id, kind: 'franchise', label: fr.n, ref: fr.id, weight: .6 }, 'franchise', 'FR', `“${f.t}” belongs to ${fr.n}.`); }

@@ -1,7 +1,7 @@
 # CINEVERSE
 
 **Every movie has a story. Every movie connects to another.**
-An interactive map of cinema: about 2,600 films joined by who directed, wrote, scored and starred in them, and by the franchises, trilogies and genres they belong to. Built with Vue 3 as the SHADW experimental web suite's Vue showcase.
+An interactive map of cinema: about 2,400 films joined by who directed, wrote, scored and starred in them, and by the franchises, trilogies and genres they belong to. Built with Vue 3 as the SHADW experimental web suite's Vue showcase.
 
 Live: <https://cineverse.shadw.app> (static site, committed in `site/`).
 

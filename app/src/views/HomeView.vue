@@ -4,12 +4,13 @@ import { RouterLink } from 'vue-router';
 import { useCatalog } from '@/stores/catalog';
 import HeroConstellation from '@/components/HeroConstellation.vue';
 import FilmTile from '@/components/FilmTile.vue';
+import RouteCards from '@/components/RouteCards.vue';
 import { genreColor } from '@/lib/poster';
 defineEmits<{ search: [] }>();
 const cat = useCatalog().cat!;
 const popular = computed(() => cat.data.films.slice(0, 18));
-const franchises = computed(() => [...cat.data.franchises].sort((a, b) => b.films.length - a.films.length).filter(f => f.k !== 'trilogy').slice(0, 10));
-const trilogies = computed(() => cat.data.franchises.filter(f => f.k === 'trilogy' || f.ty.some(t => /trilogy/i.test(t))).slice(0, 8));
+const franchises = computed(() => [...cat.seriesSets].sort((a, b) => b.films.length - a.films.length).slice(0, 10));
+const trilogies = computed(() => cat.trilogySets.slice(0, 8));
 const directors = computed(() => { const n = new Map<string, number>(); for (const f of cat.data.films) for (const d of f.dir) n.set(d, (n.get(d) || 0) + 1); return [...n.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12).map(([id, c]) => ({ p: cat.person.get(id)!, c })).filter(x => x.p); });
 const decades = computed(() => { const n = new Map<number, number>(); for (const f of cat.data.films) n.set(Math.floor(f.y / 10) * 10, (n.get(Math.floor(f.y / 10) * 10) || 0) + 1); return [...n.entries()].sort((a, b) => a[0] - b[0]); });
 const filmsOf = (id: string) => cat.filmsOfFranchise(id);
@@ -29,11 +30,13 @@ const filmsOf = (id: string) => cat.filmsOfFranchise(id);
       </div>
     </section>
 
+    <section class="wrap py-8"><div class="flex items-end justify-between mb-4"><h2 class="display text-2xl">Routes through cinema</h2><RouterLink to="/paths" class="text-gold text-sm min-h-11 inline-flex items-center">Try your own →</RouterLink></div><p class="text-dim text-sm mb-3 max-w-[62ch]">Shortest chains of real credits between famous films, computed when this page opens. Each step names the person or franchise the two films share.</p><RouteCards /></section>
+
     <section class="wrap py-8"><h2 class="display text-2xl mb-4">Start from a film</h2>
       <div class="rail"><FilmTile v-for="f in popular" :key="f.id" :film="f" :to="`/explore?film=${f.id}`" :sub="`${f.y} · ${cat.genreName.get(cat.primaryGenre(f))}`" /></div>
       <p class="text-faint text-sm mt-2">Tiles open the map centred on that film. Posters are not redistributed: each title card is generated from the film’s own data.</p></section>
 
-    <section class="wrap py-8"><div class="flex items-end justify-between mb-4"><h2 class="display text-2xl">Franchises and universes</h2><RouterLink to="/franchises" class="text-gold text-sm min-h-11 inline-flex items-center">All {{ cat.data.franchises.length }} →</RouterLink></div>
+    <section class="wrap py-8"><div class="flex items-end justify-between mb-4"><h2 class="display text-2xl">Franchises and universes</h2><RouterLink to="/franchises" class="text-gold text-sm min-h-11 inline-flex items-center">All {{ cat.seriesSets.length }} →</RouterLink></div>
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"><RouterLink v-for="f in franchises" :key="f.id" :to="`/franchise/${f.id}`" class="panel p-4 hover:border-gold block"><p class="eyebrow">{{ f.k === 'universe' ? 'Universe' : 'Series' }} · {{ f.films.length }} films</p><b class="block mt-2 font-display text-lg leading-tight">{{ f.n }}</b><span class="text-sm text-faint">{{ filmsOf(f.id)[0]?.y }}–{{ filmsOf(f.id).at(-1)?.y }}</span></RouterLink></div></section>
 
     <section class="wrap py-8"><div class="flex items-end justify-between mb-4"><h2 class="display text-2xl">Trilogies</h2><RouterLink to="/trilogies" class="text-gold text-sm min-h-11 inline-flex items-center">The Trilogy Machine →</RouterLink></div>
@@ -48,8 +51,5 @@ const filmsOf = (id: string) => cat.filmsOfFranchise(id);
     <section class="wrap py-8"><h2 class="display text-2xl mb-4">A century of films, by decade</h2>
       <RouterLink to="/timeline" class="block panel p-4 hover:border-gold" aria-label="Open the timeline"><div class="flex items-end gap-1 h-28"><div v-for="[d, n] in decades" :key="d" class="flex-1 min-w-0 flex flex-col items-center justify-end gap-1"><div class="w-full rounded-sm" :style="{ height: Math.max(4, n / Math.max(...decades.map(x => x[1])) * 88) + 'px', background: 'var(--color-gold)' }" /><span class="text-[12px] text-faint">{{ String(d).slice(2) }}s</span></div></div></RouterLink></section>
 
-    <footer class="wrap py-10 text-sm text-faint border-t border-line mt-6">
-      <p>Film, people and franchise facts: <a class="underline" href="https://www.wikidata.org">Wikidata</a> (CC0). Synopses and biographies: <a class="underline" href="https://en.wikipedia.org">Wikipedia</a> lead paragraphs (CC BY-SA 4.0), each linked to its article. Snapshot {{ cat.data.meta.generated }}. <RouterLink class="underline" to="/collections">Your collections</RouterLink> stay in this browser. Built with Vue 3 as part of the SHADW experimental web suite.</p>
-    </footer>
   </div>
 </template>

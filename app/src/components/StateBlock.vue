@@ -13,7 +13,7 @@ defineEmits<{ retry: [] }>();
     <div v-else class="max-w-md">
       <svg viewBox="0 0 64 64" class="mx-auto w-16 h-16 animate-spin" style="animation-duration: 2.4s" aria-hidden="true"><circle cx="32" cy="32" r="26" fill="none" stroke="var(--color-line)" stroke-width="3" /><path d="M32 6a26 26 0 0 1 26 26" fill="none" stroke="var(--color-gold)" stroke-width="3" stroke-linecap="round" /></svg>
       <p class="eyebrow mt-5">Loading the catalog</p>
-      <p class="text-dim mt-2">About 2,000 films, 11,000 people and their connections.</p>
+      <p class="text-dim mt-2">About 2,400 films, 14,000 people and their connections.</p>
     </div>
   </div>
 </template>
