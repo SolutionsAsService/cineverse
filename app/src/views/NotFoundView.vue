@@ -1,0 +1,2 @@
+<script setup lang="ts">import { RouterLink } from 'vue-router';</script>
+<template><div class="wrap grid grid-cols-1 place-items-center text-center" style="min-height: calc(100dvh - var(--nav-h))"><div><p class="eyebrow">Not found</p><h1 class="display text-4xl mt-3">That reel is missing.</h1><p class="text-dim mt-3">The page or film id does not exist in this catalog.</p><RouterLink to="/explore" class="btn primary mt-6">Open the map</RouterLink></div></div></template>

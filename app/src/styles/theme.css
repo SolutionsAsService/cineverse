@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* CINEVERSE tokens. Ground and panels are near-black film base. Relationship hues come from the SMPTE colour bars (see scripts/palette.mjs: min pairwise dE76 64.6 incl. the gold signal, each >= 5.3:1 on the panel).
+   Gold is the one reserved signal (selection, focus, the primary action); it is never used as a relationship colour. */
+@theme {
+  --color-ink: #0b0a0c;
+  --color-panel: #17151a;
+  --color-panel2: #201d25;
+  --color-line: #36313d;
+  --color-text: #f1ece3;
+  --color-dim: #b3acbb;
+  --color-faint: #8f8898;
+  --color-gold: #c9a45c;
+  --color-franchise: #ff4813;
+  --color-trilogy: #f216ff;
+  --color-director: #01d3ff;
+  --color-cast: #00c581;
+  --color-crew: #f55d97;
+  --color-genre: #7282fc;
+  --color-adaptation: #b3e900;
+  --color-inferred: #9a96a3;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+}
+:root { color-scheme: dark; --wash: transparent; --nav-h: 56px; }
+html, body, #app { min-height: 100%; }
+body { margin: 0; background: var(--color-ink); color: var(--color-text); font-family: var(--font-sans); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-gold) 40%, transparent); }
+
+/* zones: each section of the site sits on its own ground drawn from the same palette, so the page you are on is felt as well as read */
+.zone { background: radial-gradient(1200px 520px at 80% -10%, var(--wash), transparent 70%), var(--color-ink); min-height: calc(100dvh - var(--nav-h)); }
+.zone-home { --wash: color-mix(in srgb, var(--color-gold) 16%, transparent); }
+.zone-franchise { --wash: color-mix(in srgb, var(--color-franchise) 20%, transparent); }
+.zone-trilogy { --wash: color-mix(in srgb, var(--color-trilogy) 18%, transparent); }
+.zone-person { --wash: color-mix(in srgb, var(--color-director) 16%, transparent); }
+.zone-genre { --wash: color-mix(in srgb, var(--color-genre) 20%, transparent); }
+.zone-time { --wash: color-mix(in srgb, var(--color-adaptation) 12%, transparent); }
+.zone-paths { --wash: color-mix(in srgb, var(--color-cast) 15%, transparent); }
+.zone-lib { --wash: color-mix(in srgb, var(--color-crew) 14%, transparent); }
+
+.eyebrow { font: 600 12px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--color-faint); }
+.display { font-family: var(--font-display); font-weight: 700; letter-spacing: -.01em; line-height: 1.02; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 44px; padding: 0 16px; border: 1px solid var(--color-line); background: var(--color-panel2); border-radius: 6px; font-weight: 600; font-size: 14px; }
+.btn:hover { border-color: var(--color-gold); }
+.btn.primary { background: var(--color-gold); border-color: var(--color-gold); color: #17130a; }
+.btn.ghost { background: transparent; }
+.btn[aria-pressed="true"], .btn.on { border-color: var(--color-gold); color: var(--color-gold); }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border: 1px solid var(--color-line); border-radius: 999px; font-size: 13px; color: var(--color-dim); background: color-mix(in srgb, var(--color-panel) 80%, transparent); }
+.chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.panel { background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 8px; }
+.field { width: 100%; min-height: 44px; padding: 0 12px; background: var(--color-ink); border: 1px solid var(--color-line); border-radius: 6px; font-size: 16px; }
+.field:focus-visible { border-color: var(--color-gold); outline-offset: 0; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+.rail { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+.tile { display: block; width: 132px; }
+.tile img { display: block; width: 100%; aspect-ratio: 2 / 3; border-radius: 4px; border: 1px solid var(--color-line); background: var(--color-panel); }
+.tile:hover img { border-color: var(--color-gold); }
+.tile b { display: block; margin-top: 6px; font-size: 13px; line-height: 1.25; font-weight: 600; }
+.tile span { font-size: 12px; color: var(--color-faint); }
+.kbd { font: 600 12px var(--font-mono); padding: 2px 6px; border: 1px solid var(--color-line); border-radius: 4px; color: var(--color-dim); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+@media (pointer: coarse) { .chip { min-height: 36px; } }
+@media (pointer: coarse), (max-width: 1180px) { a.chip, button.chip { min-height: 44px; } }
+/* touch: links that stand alone in lists, definition lists and chips get a 44px target; links inside running text keep their line */
+@media (pointer: coarse), (max-width: 1180px) {
+  main :where(li, dd, dt, h2, h3, figcaption, nav) > a:not(.tile):not(.btn):not(.panel) { display: inline-flex; align-items: center; min-height: 44px; }
+  main dd > a { padding-right: 4px; }
+  main select { min-height: 44px; }
+  .btn select { min-height: 44px; padding: 0 4px; }
+}
+@media (pointer: coarse), (max-width: 1180px) { .link-t { display: inline-flex; align-items: center; min-height: 44px; } }

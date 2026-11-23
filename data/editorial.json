@@ -1,0 +1,115 @@
+{
+ "note": "The trilogy list is taken from section 5 of design/master-prompt.md. Titles are resolved against the snapshot; a trilogy whose titles are not in the snapshot is skipped, never filled with guesses. 'kind' separates narrative trilogies from thematic and director-defined ones, as the brief requires.",
+ "trilogies": [
+  {
+   "name": "The Lord of the Rings trilogy",
+   "kind": "narrative",
+   "titles": [
+    "The Lord of the Rings: The Fellowship of the Ring",
+    "The Lord of the Rings: The Two Towers",
+    "The Lord of the Rings: The Return of the King"
+   ],
+   "note": "One continuous story filmed as three parts."
+  },
+  {
+   "name": "The Dark Knight trilogy",
+   "kind": "narrative",
+   "titles": [
+    "Batman Begins",
+    "The Dark Knight",
+    "The Dark Knight Rises"
+   ],
+   "note": "Christopher Nolan's Batman films: one continuity, three directors' cuts of a single arc."
+  },
+  {
+   "name": "The original Star Wars trilogy",
+   "kind": "narrative",
+   "titles": [
+    "Star Wars: Episode IV – A New Hope",
+    "Star Wars: Episode V – The Empire Strikes Back",
+    "Star Wars: Episode VI – Return of the Jedi"
+   ],
+   "note": "Episodes IV to VI."
+  },
+  {
+   "name": "The Cornetto Trilogy",
+   "kind": "director-defined",
+   "titles": [
+    "Shaun of the Dead",
+    "Hot Fuzz",
+    "The World's End"
+   ],
+   "note": "Linked by director Edgar Wright, writers Wright and Simon Pegg, recurring actors and a running ice-cream gag. Not a continuous story."
+  },
+  {
+   "name": "The Back to the Future trilogy",
+   "kind": "narrative",
+   "titles": [
+    "Back to the Future",
+    "Back to the Future Part II",
+    "Back to the Future Part III"
+   ],
+   "note": "One continuous time-travel story."
+  },
+  {
+   "name": "The Matrix trilogy",
+   "kind": "narrative",
+   "titles": [
+    "The Matrix",
+    "The Matrix Reloaded",
+    "The Matrix Revolutions"
+   ],
+   "note": "The original three films."
+  },
+  {
+   "name": "The Godfather trilogy",
+   "kind": "narrative",
+   "titles": [
+    "The Godfather",
+    "The Godfather Part II",
+    "The Godfather Part III"
+   ],
+   "note": "The Corleone saga."
+  },
+  {
+   "name": "The Before trilogy",
+   "kind": "narrative",
+   "titles": [
+    "Before Sunrise",
+    "Before Sunset",
+    "Before Midnight"
+   ],
+   "note": "Nine-year gaps in the story, the same two lead actors and director."
+  },
+  {
+   "name": "The Three Colours trilogy",
+   "kind": "thematic",
+   "titles": [
+    "Three Colours: Blue",
+    "Three Colours: White",
+    "Three Colours: Red"
+   ],
+   "note": "Krzysztof Kieślowski's films on the French Revolution's ideals (liberty, equality, fraternity). Thematic, not a continuous story."
+  },
+  {
+   "name": "The Dollars Trilogy",
+   "kind": "director-defined",
+   "titles": [
+    "A Fistful of Dollars",
+    "For a Few Dollars More",
+    "The Good, the Bad and the Ugly"
+   ],
+   "note": "Sergio Leone's films with Clint Eastwood; separate stories, shared style and lead."
+  },
+  {
+   "name": "The Vengeance Trilogy",
+   "kind": "thematic",
+   "titles": [
+    "Sympathy for Mr. Vengeance",
+    "Oldboy",
+    "Sympathy for Lady Vengeance"
+   ],
+   "note": "Park Chan-wook's films about revenge. Thematic, not a continuous story."
+  }
+ ]
+}

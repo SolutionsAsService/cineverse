@@ -1,0 +1,11 @@
+// Fails the build when the Shadw/Vercel static-hosting files are missing or disagree (site is committed, there is no build step on the host).
+import { readFileSync, existsSync } from 'node:fs';
+const root = new URL('../', import.meta.url).pathname; const fail = []; const read = p => JSON.parse(readFileSync(root + p, 'utf8'));
+const need = p => { if (!existsSync(root + p)) fail.push(`missing ${p}`); return existsSync(root + p); };
+if (need('vercel.json')) { const v = read('vercel.json'); if (v.framework !== null) fail.push('vercel.json framework must be null'); if (v.installCommand !== '' || v.buildCommand !== '') fail.push('vercel.json install/build commands must be empty'); if (v.outputDirectory !== 'site') fail.push('vercel.json outputDirectory must be site'); if (v.cleanUrls !== true) fail.push('vercel.json cleanUrls must be true'); if (v.fluid !== true) fail.push('vercel.json fluid must be true'); }
+if (need('app/public/vercel.json')) { const v = read('app/public/vercel.json'); if (v.outputDirectory !== '.') fail.push('inner vercel.json outputDirectory must be "."'); }
+if (need('fluid.json')) { const f = read('fluid.json'); if (f.project !== 'cineverse') fail.push('fluid.json project must be cineverse'); if (f.static_dir !== 'site') fail.push('fluid.json static_dir must be site'); const r = f.routes; if (!Array.isArray(r) || r.length !== 1 || r[0].pattern !== '/' || r[0].target !== 'static' || Object.keys(r[0]).length !== 2) fail.push('fluid.json routes must be exactly [{"pattern":"/","target":"static"}]'); if (Object.keys(f).sort().join() !== 'project,routes,static_dir') fail.push('fluid.json has unexpected keys'); }
+if (need('index.html') && !readFileSync(root + 'index.html', 'utf8').includes('site/')) fail.push('root index.html must redirect to site/');
+if (need('.vercelignore')) for (const l of readFileSync(root + '.vercelignore', 'utf8').split('\n').filter(Boolean)) if (!l.startsWith('/')) fail.push(`.vercelignore entry not root-anchored: ${l}`);
+const html = readFileSync(root + 'app/index.html', 'utf8'); if (!/og:image" content="https:\/\/cineverse\.shadw\.app\/[^"]+"/.test(html)) fail.push('og:image must be absolute on https://cineverse.shadw.app/');
+if (fail.length) { console.error('deploy check failed:\n - ' + fail.join('\n - ')); process.exit(1); } console.log('deploy files ok');

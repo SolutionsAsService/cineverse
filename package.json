@@ -1,0 +1,35 @@
+{
+  "name": "cineverse",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "CINEVERSE, the interactive movie connection atlas. Vue 3 + TypeScript + Vite + Tailwind + D3 + Cytoscape.js over a Wikidata snapshot.",
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "data:fetch": "node scripts/fetch-wikidata.mjs && node scripts/fetch-extras.mjs",
+    "data:build": "node scripts/build-dataset.mjs",
+    "typecheck": "vue-tsc --noEmit -p app/tsconfig.json",
+    "test": "node --import tsx --test test/*.test.ts",
+    "build": "node scripts/check-deploy.mjs && vue-tsc --noEmit -p app/tsconfig.json && vite build --config vite.config.ts && node scripts/check-site.mjs"
+  },
+  "dependencies": {
+    "@vueuse/core": "^15.1.0",
+    "cytoscape": "^3.35.0",
+    "d3": "^7.9.2",
+    "pinia": "^4.1.0",
+    "vue": "^3.5.46",
+    "vue-router": "^5.5.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/cytoscape": "^3.21.9",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^26.6.6",
+    "@vitejs/plugin-vue": "^6.0.11",
+    "tailwindcss": "^4.3.5",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.8",
+    "vue-tsc": "^3.3.14"
+  }
+}
