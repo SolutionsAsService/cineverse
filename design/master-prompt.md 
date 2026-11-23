@@ -1,0 +1,1331 @@
+# CINEVERSE
+## The Interactive Movie Connection Atlas
+
+**Tagline:** Every movie has a story. Every movie connects to another.
+
+**Project:** SHADW Experimental Web Suite  
+**Product:** Interactive Movie Discovery and Relationship Mapping Platform  
+**Framework:** Vue 3  
+**Language:** TypeScript  
+**Build Tool:** Vite  
+**Styling:** Tailwind CSS  
+**Visualization:** D3.js  
+**Graph Engine:** Cytoscape.js  
+**Backend:** Node.js / TypeScript  
+**Database:** PostgreSQL  
+**Optional Search:** Meilisearch  
+**Target:** Desktop, tablet, mobile
+
+---
+
+# 1. YOUR ROLE
+
+You are the lead product designer, frontend architect, backend engineer, data architect, visualization specialist, and creative director responsible for developing CINEVERSE.
+
+Build a professional, visually impressive, interactive movie discovery platform containing at least 1,000 popular movies at launch, with an architecture capable of expanding to tens of thousands.
+
+The platform should combine:
+
+- IMDb-style movie information.
+- Letterboxd-style discovery.
+- Wikipedia-style interconnected knowledge.
+- Interactive graph visualization.
+- Film franchise and cinematic universe exploration.
+- Director and actor filmographies.
+- Genre-based discovery.
+- Timeline exploration.
+- Movie recommendation through relationships.
+
+Do not build another conventional movie database.
+
+Build a visual knowledge graph of cinema.
+
+The defining feature is that users should be able to explore movies by following their connections.
+
+Every movie should be a gateway into discovering other movies.
+
+---
+
+# 2. PRODUCT VISION
+
+CINEVERSE is an interactive map of cinema.
+
+The platform contains a large database of movies connected through relationships.
+
+Users can explore:
+
+- Movies.
+- Directors.
+- Actors.
+- Screenwriters.
+- Producers.
+- Cinematographers.
+- Composers.
+- Genres.
+- Franchises.
+- Trilogies.
+- Shared cinematic universes.
+- Remakes.
+- Adaptations.
+- Sequels.
+- Prequels.
+- Spiritual successors.
+- Thematic similarities.
+- Historical movements.
+
+The experience should feel like exploring an enormous interconnected universe.
+
+A user might begin with a single movie and spend an hour discovering films through its connections.
+
+## Example exploration
+
+Start with Pulp Fiction.
+
+Explore:
+- Quentin Tarantino.
+- John Travolta.
+- Samuel L. Jackson.
+- Uma Thurman.
+- Crime cinema.
+- Neo-noir.
+- Reservoir Dogs.
+- Jackie Brown.
+- Kill Bill.
+- Other films sharing its cast and creative contributors.
+
+Then click a genre connection and discover an entirely different collection of movies.
+
+The map should constantly encourage discovery.
+
+---
+
+# 3. VISUAL DESIGN
+
+The website should have a distinctive visual identity.
+
+## Design direction
+
+Create a sophisticated cinematic interface.
+
+Think:
+- Film archive.
+- Modern data visualization.
+- Interactive knowledge graph.
+- Premium streaming discovery platform.
+- Digital film museum.
+
+Avoid generic streaming-service layouts.
+
+## Theme
+
+Default to a beautiful dark interface.
+
+Suggested colors:
+- Near-black background.
+- Charcoal panels.
+- Muted gold accents.
+- Warm white typography.
+- Muted blue connection lines.
+- Distinct accent colors for different relationship categories.
+
+The interface should feel cinematic, intelligent, and immersive.
+
+## Typography
+
+Use:
+- Modern sans-serif for interface elements.
+- Elegant display typography for major headings.
+- Readable typography for movie descriptions.
+
+## Layout
+
+Primary application layout:
+
+1. Top navigation.
+2. Left exploration sidebar.
+3. Main interactive movie map.
+4. Right information panel.
+5. Bottom contextual timeline or navigation controls.
+
+The map should occupy most of the screen.
+
+Make the visualization the central attraction.
+
+---
+
+# 4. THE INTERACTIVE MOVIE MAP
+
+THIS IS THE CORE PRODUCT FEATURE.
+
+Build a highly interactive graph visualization.
+
+Every movie is represented as a node.
+
+Relationships are represented as edges connecting nodes.
+
+## Node categories
+
+Create distinct visual representations for:
+
+- Movies.
+- Directors.
+- Actors.
+- Genres.
+- Franchises.
+- Trilogies.
+- Cinematic universes.
+- Studios.
+- Writers.
+- Composers.
+
+Movies should be the primary node type.
+
+Other node types should be available through exploration and filtering.
+
+## Movie node appearance
+
+Each movie node should display:
+
+- Poster thumbnail.
+- Movie title.
+- Release year.
+- Optional rating indicator.
+
+Node size can reflect popularity or user-selected importance.
+
+Allow different visualization modes:
+
+### Poster Mode
+
+Display movie posters as nodes.
+
+This should be the most visually appealing mode.
+
+### Minimal Mode
+
+Display simple colored circles with titles.
+
+Useful for large graphs.
+
+### Genre Mode
+
+Color nodes according to genre.
+
+### Franchise Mode
+
+Group connected movies into recognizable clusters.
+
+### Timeline Mode
+
+Arrange nodes chronologically.
+
+### Relationship Mode
+
+Highlight the connections between selected movies.
+
+## Graph interactions
+
+Users must be able to:
+
+- Pan.
+- Zoom.
+- Drag nodes.
+- Select nodes.
+- Expand connections.
+- Collapse branches.
+- Search within the map.
+- Filter relationships.
+- Highlight paths.
+- Center the graph.
+- Reset the visualization.
+- Save interesting maps.
+
+Clicking a movie should reveal its details.
+
+Double-clicking or using an expand control should reveal additional connections.
+
+Use smooth transitions.
+
+Avoid overwhelming users with hundreds of nodes simultaneously.
+
+Implement progressive graph expansion.
+
+---
+
+# 5. RELATIONSHIP ENGINE
+
+Build a sophisticated relationship system.
+
+Every connection should have a defined relationship type.
+
+## Direct relationships
+
+### Franchise relationships
+
+- Same franchise.
+- Same series.
+- Sequel.
+- Prequel.
+- Reboot.
+- Remake.
+- Spin-off.
+- Shared universe.
+
+### Trilogy relationships
+
+Recognize famous trilogies, including:
+
+- The Lord of the Rings trilogy.
+- The Dark Knight trilogy.
+- The original Star Wars trilogy.
+- The Cornetto Trilogy.
+- The Back to the Future trilogy.
+- The Matrix trilogy.
+- The Godfather trilogy.
+- The Before trilogy.
+- The Three Colours trilogy.
+- The Dollars Trilogy.
+- The Vengeance Trilogy.
+
+Support unofficial thematic trilogies and filmmaker-defined collections.
+
+For example, the Cornetto Trilogy is connected by director, creative team, recurring actors, and thematic structure rather than continuous story.
+
+Do not assume every trilogy is a direct narrative continuation.
+
+### Creative relationships
+
+- Same director.
+- Same actor.
+- Same screenwriter.
+- Same cinematographer.
+- Same composer.
+- Same producer.
+- Same production company.
+
+### Genre relationships
+
+- Same primary genre.
+- Shared secondary genres.
+- Subgenre.
+- Genre influence.
+- Genre evolution.
+
+### Thematic relationships
+
+- Similar themes.
+- Similar narrative structures.
+- Similar settings.
+- Similar historical periods.
+- Similar visual styles.
+- Similar subject matter.
+
+### Adaptation relationships
+
+- Based on a novel.
+- Based on a comic.
+- Based on a true story.
+- Based on a game.
+- Based on a play.
+- Adapted into another film.
+- Remade in another country.
+
+---
+
+# 6. RELATIONSHIP STRENGTH
+
+Not all relationships are equally meaningful.
+
+Create a relationship-weighting system.
+
+For example:
+
+| Relationship | Example Strength |
+|---|---:|
+| Direct sequel | 100 |
+| Same franchise | 95 |
+| Same director | 85 |
+| Same lead actor | 80 |
+| Same trilogy | 100 |
+| Same screenwriter | 70 |
+| Same genre | 50 |
+| Shared themes | 40 |
+| Similar visual style | 35 |
+
+These values should be configurable.
+
+The system should distinguish factual relationships from inferred similarities.
+
+For example:
+
+A sequel is a factual relationship.
+
+A similar visual style is an editorial or algorithmic relationship.
+
+Display relationship explanations when users hover over connections.
+
+Example:
+
+"Connected because both movies were directed by Christopher Nolan."
+
+Or:
+
+"Connected through the Cornetto Trilogy."
+
+Avoid presenting subjective recommendations as verified facts.
+
+---
+
+# 7. INITIAL MOVIE DATABASE
+
+Launch with at least 1,000 movies.
+
+Aim for approximately 1,500–2,000 curated popular films in the initial dataset if data availability permits.
+
+Include a diverse selection across:
+
+- Decades.
+- Countries.
+- Languages.
+- Genres.
+- Directors.
+- Film movements.
+- Popularity levels.
+
+Do not limit the database to Hollywood.
+
+Include:
+- American cinema.
+- British cinema.
+- French cinema.
+- Japanese cinema.
+- Korean cinema.
+- Indian cinema.
+- Italian cinema.
+- German cinema.
+- Chinese cinema.
+- Scandinavian cinema.
+- International independent cinema.
+
+## Initial genre coverage
+
+### Action
+- Mad Max: Fury Road.
+- John Wick.
+- Die Hard.
+- Terminator 2.
+- The Raid.
+
+### Science Fiction
+- Blade Runner.
+- Arrival.
+- Interstellar.
+- 2001: A Space Odyssey.
+- Dune.
+- The Matrix.
+
+### Crime
+- Goodfellas.
+- Heat.
+- The Godfather.
+- Pulp Fiction.
+- Scarface.
+
+### Horror
+- The Shining.
+- Alien.
+- Hereditary.
+- The Thing.
+- Get Out.
+
+### Fantasy
+- The Lord of the Rings.
+- Harry Potter.
+- Pan's Labyrinth.
+- Princess Mononoke.
+- The Princess Bride.
+
+### Drama
+- There Will Be Blood.
+- The Shawshank Redemption.
+- Whiplash.
+- Parasite.
+- The Social Network.
+
+### Comedy
+- The Big Lebowski.
+- Groundhog Day.
+- Superbad.
+- Airplane!
+- The Grand Budapest Hotel.
+
+### Thriller
+- Se7en.
+- Zodiac.
+- Prisoners.
+- The Silence of the Lambs.
+- Oldboy.
+
+### Animation
+- Spirited Away.
+- Akira.
+- Toy Story.
+- WALL-E.
+- Spider-Man: Into the Spider-Verse.
+
+These are examples of the initial content direction, not a complete dataset.
+
+---
+
+# 8. FRANCHISE AND CINEMATIC UNIVERSE EXPLORER
+
+Create a dedicated franchise exploration mode.
+
+Users should be able to explore entire movie series.
+
+Examples:
+
+### Star Wars
+- Original trilogy.
+- Prequel trilogy.
+- Sequel trilogy.
+- Anthology films.
+- Connections between characters.
+- Chronological timeline.
+
+### Marvel
+- Marvel Cinematic Universe.
+- Individual character films.
+- Avengers connections.
+- Phase groupings.
+- Shared characters.
+
+### DC
+- Batman films.
+- Superman films.
+- Joker films.
+- Different cinematic continuities.
+- Reboots and adaptations.
+
+### Alien
+- Original films.
+- Prequels.
+- Crossovers.
+- Related creative contributors.
+
+### Planet of the Apes
+- Original series.
+- Reboots.
+- Timeline relationships.
+
+### James Bond
+- Actors.
+- Film eras.
+- Directors.
+- Chronological sequence.
+
+### Mission: Impossible
+- Film sequence.
+- Recurring characters.
+- Directors.
+- Creative connections.
+
+### Other collections
+- Jurassic Park.
+- Fast & Furious.
+- Rocky / Creed.
+- Indiana Jones.
+- Terminator.
+- Halloween.
+- Scream.
+- Toy Story.
+- Shrek.
+- The Conjuring Universe.
+
+Build a reusable franchise schema.
+
+A franchise should support:
+- Multiple timelines.
+- Reboots.
+- Alternate continuities.
+- Spin-offs.
+- Crossovers.
+- Nonlinear release orders.
+- Character relationships.
+
+Do not assume every franchise has one canonical chronological order.
+
+---
+
+# 9. DIRECTOR EXPLORER
+
+Create an interactive director map.
+
+Clicking a director should reveal their filmography and creative connections.
+
+Include prominent filmmakers such as:
+
+- Christopher Nolan.
+- Quentin Tarantino.
+- Stanley Kubrick.
+- Martin Scorsese.
+- Steven Spielberg.
+- Denis Villeneuve.
+- Ridley Scott.
+- David Fincher.
+- Hayao Miyazaki.
+- Akira Kurosawa.
+- Wes Anderson.
+- David Lynch.
+- Sofia Coppola.
+- Bong Joon-ho.
+- Park Chan-wook.
+- Guillermo del Toro.
+- Alfred Hitchcock.
+- Francis Ford Coppola.
+
+Director pages should contain:
+
+- Biography.
+- Filmography.
+- Directorial timeline.
+- Recurring actors.
+- Frequent collaborators.
+- Genre distribution.
+- Awards.
+- Related filmmakers.
+
+Create a director relationship graph.
+
+For example, following actors and collaborators can reveal unexpected connections between otherwise unrelated filmmakers.
+
+---
+
+# 10. ACTOR CONNECTION EXPLORER
+
+Build actor-centered exploration.
+
+An actor page should display:
+
+- Filmography.
+- Most popular movies.
+- Collaborating directors.
+- Frequent co-stars.
+- Franchise appearances.
+- Genre distribution.
+- Career timeline.
+
+Create an actor relationship network.
+
+Users should be able to discover connections between movies through shared cast members.
+
+Example:
+
+Explore Leonardo DiCaprio.
+
+Discover:
+- Christopher Nolan.
+- Martin Scorsese.
+- Quentin Tarantino.
+- Steven Spielberg.
+- His different genre periods.
+- Recurring collaborators.
+
+Allow users to filter by leading roles, supporting roles, and cameo appearances where the data supports these distinctions.
+
+---
+
+# 11. CINEMATIC TIMELINE
+
+Build a separate timeline visualization.
+
+Users can explore cinema chronologically.
+
+Support:
+- Release year.
+- Decade.
+- Film movement.
+- Director career.
+- Franchise chronology.
+- Genre evolution.
+
+Allow users to zoom from centuries of film history down to individual years.
+
+Example:
+
+1950s → 1960s → 1970s → 1980s → 1990s → 2000s → 2010s → 2020s.
+
+Show major movies and important film movements.
+
+Add filters for country, genre, director, and language.
+
+---
+
+# 12. DISCOVERY ENGINE
+
+Build intelligent movie discovery.
+
+Users should be able to ask:
+
+- What should I watch after Blade Runner?
+- What movies are similar to Heat?
+- Show me every movie directed by Denis Villeneuve.
+- What are the best science fiction trilogies?
+- Show movies connected to The Godfather.
+- Find movies featuring both actors from a selected film.
+- Show films that share a composer.
+- Find movies from the same decade and genre.
+- What films influenced modern cyberpunk cinema?
+
+## Discovery algorithms
+
+Implement:
+
+### Shared Contributor Discovery
+
+Find movies connected by actors, directors, writers, and composers.
+
+### Genre Similarity
+
+Compare genre classifications.
+
+### Franchise Discovery
+
+Find related franchise entries.
+
+### Weighted Graph Similarity
+
+Calculate movie similarity using relationship weights.
+
+### Multi-hop Discovery
+
+Find movies connected through multiple relationships.
+
+For example:
+
+Movie A → Director → Movie B → Actor → Movie C.
+
+Explain why every recommendation appears.
+
+Do not present an opaque recommendation list.
+
+---
+
+# 13. SEARCH
+
+Build comprehensive global search.
+
+Search across:
+
+- Movie titles.
+- Alternative titles.
+- Actors.
+- Directors.
+- Writers.
+- Genres.
+- Franchises.
+- Years.
+- Countries.
+- Languages.
+
+Features:
+- Autocomplete.
+- Typo tolerance.
+- Search suggestions.
+- Filters.
+- Popular searches.
+- Recent searches.
+
+Selecting a search result should navigate directly to its position in the graph.
+
+---
+
+# 14. MOVIE DETAIL PANEL
+
+When a user clicks a movie, display a rich information panel.
+
+Include:
+
+- Poster.
+- Title.
+- Original title.
+- Release year.
+- Runtime.
+- Synopsis.
+- Genres.
+- Director.
+- Cast.
+- Writers.
+- Production companies.
+- Country.
+- Language.
+- Ratings where licensed.
+- Related movies.
+- Franchise information.
+- Awards where available.
+
+Provide actions:
+
+- Expand connections.
+- View filmography.
+- Show franchise.
+- Show timeline.
+- Find similar movies.
+- Add to watchlist.
+- Save to collection.
+
+The information panel should not completely obscure the graph.
+
+Use a responsive side panel.
+
+---
+
+# 15. PERSONAL COLLECTIONS
+
+Introduce optional user accounts.
+
+Users can:
+
+- Create watchlists.
+- Save favorite movies.
+- Create custom collections.
+- Bookmark graph explorations.
+- Rate movies.
+- Track watched films.
+- Share collections.
+
+Examples of user-created collections:
+
+"Best Sci-Fi of the 1990s"
+
+"Movies That Feel Like Blade Runner"
+
+"Essential Japanese Cinema"
+
+"Best Movie Trilogies"
+
+"Films Directed by Women"
+
+Allow users to create their own visual movie maps.
+
+A user should be able to save a graph configuration and return to it later.
+
+---
+
+# 16. DATA ARCHITECTURE
+
+Build a normalized relational database.
+
+Use PostgreSQL.
+
+Suggested tables:
+
+movies
+people
+genres
+franchises
+franchise_entries
+trilogies
+cinematic_universes
+studios
+countries
+languages
+movie_genres
+movie_cast
+movie_crew
+movie_relationships
+person_relationships
+movie_collections
+user_watchlists
+user_ratings
+movie_awards
+movie_keywords
+movie_alternative_titles
+
+## Relationship table
+
+Create a flexible relationship model.
+
+Fields:
+
+- id.
+- source_type.
+- source_id.
+- target_type.
+- target_id.
+- relationship_type.
+- relationship_strength.
+- relationship_source.
+- confidence.
+- description.
+
+Use explicit relationship types.
+
+Examples:
+
+SEQUEL_TO  
+PREQUEL_TO  
+REMAKE_OF  
+SPINOFF_OF  
+SAME_FRANCHISE  
+SAME_TRILOGY  
+SAME_DIRECTOR  
+SHARED_ACTOR  
+SHARED_WRITER  
+SHARED_COMPOSER  
+SAME_GENRE  
+SAME_UNIVERSE  
+BASED_ON  
+INSPIRED_BY  
+THEMATICALLY_SIMILAR
+
+Support directional and nondirectional relationships.
+
+Store source and confidence information for data quality.
+
+---
+
+# 17. DATA SOURCES
+
+Use legitimate, documented movie metadata APIs.
+
+Primary candidate:
+
+The Movie Database (TMDB).
+
+Additional candidate:
+
+Wikidata for supplementary relationships and historical information.
+
+Optional licensed services may provide additional ratings and metadata.
+
+Important requirements:
+
+- Respect API terms.
+- Respect attribution requirements.
+- Cache metadata appropriately.
+- Do not scrape websites in violation of their terms.
+- Do not redistribute copyrighted movie posters without appropriate rights.
+- Maintain source attribution.
+- Separate factual metadata from editorial classifications.
+- Implement data refresh jobs.
+- Deduplicate records.
+- Normalize movie and person identifiers.
+
+Use a provider abstraction so additional metadata sources can be integrated later.
+
+The application must not depend on live external API requests for every graph interaction.
+
+Import and cache the initial movie catalog.
+
+---
+
+# 18. FRONTEND ARCHITECTURE
+
+Use Vue 3 with Composition API and TypeScript.
+
+Recommended libraries:
+
+- Vue 3.
+- Vite.
+- TypeScript.
+- Pinia.
+- Vue Router.
+- Tailwind CSS.
+- D3.js.
+- Cytoscape.js.
+- VueUse.
+- TanStack Query for Vue.
+
+Use D3 for custom visualizations and layouts where appropriate.
+
+Use Cytoscape.js for graph interactions and relationship exploration.
+
+Do not force both libraries to manage the same graph state simultaneously.
+
+Define a single graph data model and visualization adapters.
+
+## Main components
+
+AppShell.vue  
+NavigationBar.vue  
+MovieGraph.vue  
+GraphControls.vue  
+GraphLegend.vue  
+MovieNode.vue  
+MovieDetailPanel.vue  
+PersonDetailPanel.vue  
+FranchiseExplorer.vue  
+DirectorExplorer.vue  
+ActorExplorer.vue  
+TimelineExplorer.vue  
+SearchOverlay.vue  
+FilterSidebar.vue  
+WatchlistView.vue  
+CollectionBuilder.vue  
+DiscoveryPanel.vue
+
+## Application pages
+
+/
+Home and discovery.
+
+ /explore
+Interactive movie map.
+
+ /movie/:id
+Movie detail.
+
+ /person/:id
+Actor or filmmaker detail.
+
+ /franchise/:id
+Franchise explorer.
+
+ /genre/:id
+Genre explorer.
+
+ /timeline
+Chronological movie exploration.
+
+ /collections
+Personal collections.
+
+ /search
+Advanced search.
+
+---
+
+# 19. GRAPH PERFORMANCE
+
+The graph must remain responsive with large datasets.
+
+Do not render all 1,000+ movies simultaneously.
+
+Implement:
+- Progressive expansion.
+- Viewport-based rendering.
+- Graph clustering.
+- Lazy loading.
+- Search-based graph initialization.
+- Node virtualization where appropriate.
+- Relationship filtering.
+- Web Workers for expensive graph calculations.
+- Cached layouts.
+- Level-of-detail rendering.
+
+Suggested interaction:
+
+1. Start with a selected movie.
+2. Show its strongest 10–20 connections.
+3. Allow users to expand individual relationship categories.
+4. Cluster large groups.
+5. Expand clusters on demand.
+6. Keep graph navigation responsive.
+
+Create a configurable node limit.
+
+Support both small exploration graphs and larger overview maps.
+
+---
+
+# 20. UNIQUE FEATURES
+
+These features should differentiate CINEVERSE.
+
+## A. Movie DNA
+
+Every movie receives a visual profile based on:
+
+- Genre.
+- Themes.
+- Era.
+- Director.
+- Cast.
+- Cinematography.
+- Narrative characteristics.
+
+Use this profile for discovery.
+
+## B. The Six Degrees of Cinema
+
+Let users discover how any two movies are connected.
+
+Example:
+
+Movie A → Actor → Movie B → Director → Movie C.
+
+Display the shortest relationship paths.
+
+Allow multiple paths.
+
+## C. Director Fingerprints
+
+Visualize the characteristics of individual directors.
+
+Compare:
+- Genre preferences.
+- Recurring actors.
+- Editing styles.
+- Cinematographers.
+- Themes.
+- Career evolution.
+
+## D. The Trilogy Machine
+
+Create a dedicated tool for discovering trilogies.
+
+Support:
+- Official narrative trilogies.
+- Thematic trilogies.
+- Director-defined trilogies.
+- Unofficial film groupings.
+
+Clearly distinguish these categories.
+
+## E. Genre Evolution
+
+Show how genres change across decades.
+
+For example:
+
+Film Noir → Neo-Noir → Modern Crime Thriller.
+
+Display important films and filmmakers associated with each movement.
+
+## F. Movie Constellations
+
+Allow users to create beautiful custom movie maps.
+
+Users select several movies and the platform automatically discovers connections between them.
+
+## G. Unexpected Connections
+
+Highlight surprising connections.
+
+Example:
+
+Two movies have completely different genres but share a composer, cinematographer, or supporting actor.
+
+Provide an explanation for each connection.
+
+---
+
+# 21. ADMIN AND CONTENT MANAGEMENT
+
+Create an administrative interface.
+
+Administrators should be able to:
+
+- Import movie data.
+- Edit metadata.
+- Verify relationships.
+- Create trilogies.
+- Create franchise groupings.
+- Correct inaccurate connections.
+- Manage genre classifications.
+- Review duplicate records.
+- Manage images.
+- View data source attribution.
+
+Build a relationship verification interface.
+
+Do not require developers to manually edit database records for ordinary content corrections.
+
+---
+
+# 22. INITIAL PROJECT DELIVERABLES
+
+Build the application in stages.
+
+## Phase 1 — Foundation
+
+- Vue application.
+- TypeScript configuration.
+- Design system.
+- Navigation.
+- Database schema.
+- API foundation.
+
+## Phase 2 — Movie Catalog
+
+- Import 1,000+ movies.
+- Import people.
+- Import genres.
+- Import franchises.
+- Build search.
+- Build movie detail pages.
+
+## Phase 3 — Relationship Engine
+
+- Build relationship database.
+- Create relationship queries.
+- Implement weighted connections.
+- Implement graph API.
+
+## Phase 4 — Interactive Graph
+
+- Build graph visualization.
+- Movie nodes.
+- Relationship edges.
+- Zoom and pan.
+- Search and expansion.
+- Detail panels.
+
+## Phase 5 — Exploration Tools
+
+- Franchise explorer.
+- Trilogy explorer.
+- Director explorer.
+- Actor explorer.
+- Genre explorer.
+- Timeline.
+
+## Phase 6 — Discovery
+
+- Similarity engine.
+- Multi-hop connections.
+- Six Degrees of Cinema.
+- Movie DNA.
+- Unexpected Connections.
+
+## Phase 7 — User Features
+
+- Accounts.
+- Watchlists.
+- Collections.
+- Saved maps.
+- Sharing.
+
+## Phase 8 — Polish
+
+- Performance.
+- Responsive layouts.
+- Accessibility.
+- Animations.
+- Error handling.
+- Data quality.
+- SEO.
+- Deployment.
+
+---
+
+# 23. FIRST PLAYABLE WEBSITE DEMONSTRATION
+
+Before implementing every feature, build an impressive working version.
+
+The first demonstration should include:
+
+- Dark cinematic interface.
+- Home page.
+- Search functionality.
+- At least 1,000 imported movie records.
+- Interactive graph visualization.
+- At least 100 fully connected movie records.
+- Movie detail panels.
+- Director connections.
+- Actor connections.
+- Genre connections.
+- At least 10 franchise groupings.
+- At least 10 recognized trilogies.
+- Working zoom and pan.
+- Relationship filters.
+- Search-based graph navigation.
+
+The graph must contain real movie metadata and real relationships.
+
+Do not use random connections to make the visualization look populated.
+
+A smaller accurate graph is better than a large meaningless graph.
+
+---
+
+# 24. QUALITY REQUIREMENTS
+
+The application should be production-oriented.
+
+Requirements:
+
+- Fully typed TypeScript.
+- Reusable Vue components.
+- Responsive interface.
+- Accessible navigation.
+- Efficient database queries.
+- API validation.
+- Proper error states.
+- Loading states.
+- Empty states.
+- Search performance.
+- Graph performance.
+- Data provenance.
+- Secure authentication.
+- No hardcoded API credentials.
+- No broken movie references.
+- No duplicate movie records where they can be resolved.
+- No fabricated relationships.
+- No placeholder buttons.
+
+Create automated tests for relationship queries, graph expansion, search, and data imports.
+
+Document the architecture.
+
+Maintain a development roadmap and changelog.
+
+---
+
+# 25. AGENT EXECUTION INSTRUCTIONS
+
+You are an autonomous software development agent.
+
+Start by inspecting the existing repository.
+
+Determine:
+- Existing Vue conventions.
+- Available shared SHADW components.
+- Existing design system.
+- Backend infrastructure.
+- Database availability.
+- Deployment conventions.
+
+Preserve reusable components.
+
+Do not overwrite unrelated projects.
+
+Before implementation:
+
+1. Inspect the repository.
+2. Establish the architecture.
+3. Create the project roadmap.
+4. Define the database.
+5. Identify metadata sources.
+6. Build the first functional version.
+
+Prioritize the interactive graph.
+
+Do not spend weeks building backend abstractions before producing a visible working application.
+
+The first milestone should be a user opening the website, searching for a movie, and exploring its connections through an interactive map.
+
+Test each major feature before proceeding.
+
+Make sensible implementation decisions without repeatedly asking for approval.
+
+Document limitations and outstanding tasks.
+
+---
+
+# FINAL CREATIVE VISION
+
+CINEVERSE should become an interactive encyclopedia of cinema.
+
+A place where people can explore the relationships between films, filmmakers, actors, genres, franchises, and entire eras of filmmaking.
+
+A user should be able to start with one movie and discover an entire world of cinema.
+
+The experience should be visually beautiful, intellectually interesting, and genuinely useful.
+
+Do not make it look like another movie streaming website.
+
+Make it feel like exploring a universe of interconnected films.
+
+**CINEVERSE — Every movie connects.**
